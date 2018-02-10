@@ -101,7 +101,7 @@ namespace detailgui
 				if( boost::filesystem::is_regular_file( aDiff->fullpath[aIdx] ) ) {
 					fullPath->setText(
 							QString("%1").arg(
-									filesize) );
+									fsdiff::pretty_print_size(filesize).c_str()) );
 				}
 			}
 			else {

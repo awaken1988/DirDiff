@@ -12,13 +12,7 @@
 #include <QMainWindow>
 #include <QTimer>
 
-//TODO: QT redraw scrollbars
-//TODO: select directory dialog
-//TODO: detail box and to long strings
 
-//FIXME: all filesystem actions should be moved to fsdiff
-//			- saved in a try/catch call
-//			- can return nothing
 
 auto getPathByArg(int argc, char **argv)
 {
