@@ -14,6 +14,8 @@
 #include <QFrame>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/exception.hpp>
+#include <QScrollBar>
+#include <type_traits>
 #include "detailgui.h"
 
 
@@ -101,7 +103,7 @@ namespace detailgui
 				if( boost::filesystem::is_regular_file( aDiff->fullpath[aIdx] ) ) {
 					fullPath->setText(
 							QString("%1").arg(
-									fsdiff::pretty_print_size(filesize).c_str()) );
+									filesize) );
 				}
 			}
 			else {
@@ -218,6 +220,35 @@ namespace detailgui
 		return content_widget;
 	}
 
+	static void impl_after_content(std::array<QWidget*, 2>& aWidgets)
+	{
+		//QPlainTextEdit
+		{
+			QPlainTextEdit* left = dynamic_cast<QPlainTextEdit*>(aWidgets[0]);
+			QPlainTextEdit* right = dynamic_cast<QPlainTextEdit*>(aWidgets[1]);
+
+			if( nullptr != left && nullptr != right) {
+
+				auto slider_sync_fun = [](QPlainTextEdit* aLeft, QPlainTextEdit* aRight) {
+					int slider_val = aLeft->verticalScrollBar()->value();
+					slider_val = slider_val > aRight->verticalScrollBar()->maximum() ?
+							aRight->verticalScrollBar()->maximum() : slider_val;
+					aRight->verticalScrollBar()->setValue(slider_val);
+				};
+
+				QObject::connect(left->verticalScrollBar(), &QScrollBar::actionTriggered, [slider_sync_fun, left,right](){
+					slider_sync_fun(left, right);
+				});
+
+				QObject::connect(right->verticalScrollBar(), &QScrollBar::actionTriggered, [slider_sync_fun, left,right](){
+					slider_sync_fun(right, left );
+				});
+
+				return;
+			}
+		}
+	}
+
 	QWidget* show_content(fsdiff::diff_t* aDiff)
 	{
 		using namespace fsdiff;
@@ -225,25 +256,28 @@ namespace detailgui
 		QWidget* mainWidget = new QWidget;
 		QGridLayout * gridLayout = new QGridLayout;
 		mainWidget->setLayout(gridLayout);
+		std::array<QWidget*, 2> loaded_widgets = {nullptr, nullptr};
 
 		for(int iSide=0; iSide<SIDES; iSide++) {
 			if( (cause_t::ADDED == aDiff->cause && iSide != diff_t::RIGHT)
 				|| (cause_t::DELETED == aDiff->cause && iSide != diff_t::LEFT) )
 			{
-				QLabel* lbl = new QLabel( fsdiff::cause_t_str(aDiff->cause).c_str());
-				QLabel* lblEmpty = new QLabel( fsdiff::cause_t_str(aDiff->cause).c_str());
-				gridLayout->addWidget(lbl, 0, iSide);
-				gridLayout->addWidget(lbl, 0, iSide);
+				loaded_widgets[iSide] = new QLabel( fsdiff::cause_t_str(aDiff->cause).c_str());
 			}
 			else
 			{
-				gridLayout->addWidget(
-						impl_load_content(aDiff->fullpath.at(iSide)),
-						0, iSide);
+				loaded_widgets[iSide] = impl_load_content(aDiff->fullpath.at(iSide));
 			}
 
 			gridLayout->setColumnStretch(iSide, 1);
 		}
+
+		//add to layout
+		gridLayout->addWidget(loaded_widgets[0], 0, 0);
+		gridLayout->addWidget(loaded_widgets[1], 0, 1);
+
+		 impl_after_content(loaded_widgets);
+
 
 		return mainWidget;
 	}

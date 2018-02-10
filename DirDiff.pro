@@ -18,7 +18,9 @@ CONFIG += debug
 
 unix:LIBS += -lboost_system -lboost_filesystem 
 
-QMAKE_CXXFLAGS += -Wno-unused-variable -Wno-unused-parameter
+QMAKE_CXXFLAGS +=	-std=c++1z \
+					-Wno-unused-variable \
+					-Wno-unused-parameter 
 
 DESTDIR = build
 OBJECTS_DIR = build
