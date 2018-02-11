@@ -7,6 +7,7 @@ enum class column_e {
     ITEM_NAME=0,
     ITEM_CAUSE,
     DIFF_SIZE,
+	HASH,
     LEN,
 };
 

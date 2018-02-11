@@ -115,6 +115,34 @@ namespace detailgui
 			aGrid->addWidget(fullPathText, row++, 0+col_offset);
 			aGrid->addWidget(fullPath, row-1, 1+col_offset);
 		}
+
+		//hash
+		{
+			path curr_path = aDiff->fullpath[aIdx];
+
+
+
+			if( aDiff->file_hashes->path_hash.find(curr_path) != aDiff->file_hashes->path_hash.end() ) {
+
+				auto result = aDiff->file_hashes->path_hash[curr_path];
+
+				QString result_str;
+				for(auto iByte: result) {
+					result_str += QString("%1 ").arg((int)iByte, 2, 16, QChar('0'));
+				}
+
+
+				QLabel* fullPathText 	= new QLabel("Hash:");
+				QLabel* fullPath 		= new QLabel(result_str);
+
+
+				fullPath->setWordWrap(true);
+				aGrid->addWidget(fullPathText, row++, 0+col_offset);
+				aGrid->addWidget(fullPath, row-1, 1+col_offset);
+			}
+
+
+		}
 	}
 
 	static void impl_diffgrid_settings(QGridLayout* aGridLayout)

@@ -11,6 +11,8 @@
 #include <array>
 #include <cmath>
 #include <boost/format.hpp>
+#include <QFile>
+#include <QCryptographicHash>
 
 namespace fsdiff
 {
@@ -66,6 +68,39 @@ namespace fsdiff
 			return true;
 
 		return false;
+	}
+
+	void diff_t::createFileHashes()
+	{
+		file_hashes = shared_ptr<file_hash_t>(new file_hash_t);
+
+		//calculate hashsum
+		foreach_diff_item(*this, [this](diff_t& aTree) {
+			for(int iSide=0; iSide<2; iSide++) {
+				if( is_regular_file(aTree.fullpath[iSide]) ) {
+					QFile hashFile(aTree.fullpath[iSide].c_str());
+					if( !hashFile.open(QIODevice::ReadOnly) )
+						continue;
+
+					QCryptographicHash hashFunction(QCryptographicHash::Sha3_512);
+					if( !hashFunction.addData(&hashFile))
+						continue;
+
+					QByteArray result = hashFunction.result();
+
+					auto result_vector = vector<unsigned char>(result.begin(), result.end());
+
+					file_hashes->path_hash[aTree.fullpath[iSide]] = result_vector;
+					file_hashes->hash_path[result_vector].push_back(aTree.fullpath[iSide]);
+					file_hashes->path_diff[aTree.fullpath[iSide]] = &aTree;
+				}
+			}
+		});
+
+		//set file_hashes for every child
+		foreach_diff_item(*this, [this](diff_t& aTree) {
+			aTree.file_hashes = this->file_hashes;
+		});
 	}
 
 	static bool impl_check_access(const path& aPath)
@@ -282,7 +317,7 @@ namespace fsdiff
 		}
 	}
 
-	void foreach_diff_item(const diff_t& aTree, std::function<void(const diff_t& aTree)> aFunction)
+	void foreach_diff_item(diff_t& aTree, std::function<void(diff_t& aTree)> aFunction)
 	{
 		aFunction(aTree);
 
@@ -290,5 +325,7 @@ namespace fsdiff
 			foreach_diff_item(*iChild, aFunction);
 		}
 	}
+
+
 
 } /* namespace fsdiff */

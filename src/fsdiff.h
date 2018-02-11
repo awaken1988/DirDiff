@@ -16,6 +16,7 @@
 #include <map>
 #include <cassert>
 #include <functional>
+#include <vector>
 #include <boost/filesystem.hpp>
 #include "boost/format.hpp"
 
@@ -37,6 +38,15 @@ namespace fsdiff
 
 	const set<cause_t>& cause_t_list();
 
+	struct diff_t;
+
+	struct file_hash_t {
+		map<path, vector<unsigned char>> path_hash;
+		map<vector<unsigned char>, vector<path>> hash_path;
+		map<path, diff_t*> path_diff;
+
+	};
+
 	struct diff_t
 	{
 		enum idx_t {
@@ -54,8 +64,14 @@ namespace fsdiff
 		path getLastName(idx_t aIdx=LEFT);
 		bool isBase();
 
+		//optional filehashes
+		void createFileHashes();
+		shared_ptr<file_hash_t> file_hashes;
+
 		int debug_id;
 	};
+
+
 
 	shared_ptr<diff_t> list_dir_rekursive(path aAbsoluteBase);
 
@@ -67,7 +83,9 @@ namespace fsdiff
 
 	void dump(shared_ptr<diff_t> & aTree, int aDepth=0);
 
-	void foreach_diff_item(const diff_t& aTree, std::function<void(const diff_t& aTree)> aFunction);
+	void foreach_diff_item(diff_t& aTree, std::function<void(diff_t& aTree)> aFunction);
+
+	file_hash_t create_hash(diff_t& aTree);
 
 } /* namespace fsdiff */
 

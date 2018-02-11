@@ -36,6 +36,7 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 	statusBar()->showMessage("diff...");
 
 	auto difftree = fsdiff::compare(aPaths[0], aPaths[1]);
+	difftree->createFileHashes();
 
 	m_model = new TreeModel(this, difftree);
 

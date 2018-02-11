@@ -49,6 +49,8 @@ protected:
 	int m_detail_tab_idx=0;
 
 	const bool m_with_filter = true;
+
+
 };
 
 #endif /* MAINGUI_H_ */
