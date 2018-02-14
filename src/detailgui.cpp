@@ -122,7 +122,7 @@ namespace detailgui
 
 
 
-			if( aDiff->file_hashes->path_hash.find(curr_path) != aDiff->file_hashes->path_hash.end() ) {
+			if( nullptr != aDiff->file_hashes && aDiff->file_hashes->path_hash.find(curr_path) != aDiff->file_hashes->path_hash.end() ) {
 
 				auto result = aDiff->file_hashes->path_hash[curr_path];
 

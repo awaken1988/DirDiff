@@ -17,6 +17,7 @@
 #include <cassert>
 #include <functional>
 #include <vector>
+#include <mutex>
 #include <boost/filesystem.hpp>
 #include "boost/format.hpp"
 
@@ -65,7 +66,7 @@ namespace fsdiff
 		bool isBase();
 
 		//optional filehashes
-		void createFileHashes();
+		void createFileHashes(std::function<void(int,int,int)> aStep);
 		shared_ptr<file_hash_t> file_hashes;
 
 		int debug_id;

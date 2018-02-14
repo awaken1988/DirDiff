@@ -36,7 +36,7 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 	statusBar()->showMessage("diff...");
 
 	auto difftree = fsdiff::compare(aPaths[0], aPaths[1]);
-	difftree->createFileHashes();
+	//difftree->createFileHashes();
 
 	m_model = new TreeModel(this, difftree);
 
@@ -65,6 +65,31 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 
 		filter_layout->addStretch(1);
 
+		//Create File Hashes
+		{
+			auto ret = new QPushButton("Compare Files");
+			QObject::connect(ret, &QPushButton::clicked, [this]() {
+
+				auto progress = new QProgressBar();
+				m_progress_list->addWidget(progress);
+
+				auto ready = [progress]()->void {
+					progress->hide();
+					return;
+				};
+				auto step = [progress](int aMin, int aMax, int aCurr)->void {
+					progress->setMinimum(aMin);
+					progress->setMaximum(aMax);
+					progress->setValue(aCurr);
+
+					progress->setTextVisible(true);
+					progress->setFormat("Hash files");
+					return;
+				};
+				m_model->startFileHash( ready, step );
+			});
+			filter_layout->addWidget(ret);
+		};
 
 		//collapse all
 		{
@@ -104,6 +129,12 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 	m_detail_tab = new QTabWidget(this);
 	layout->addWidget(m_detail_tab, layout->rowCount(), 0, 1, 2);
 	init_left_right_info();
+
+	//Progres bar
+	{
+		m_progress_list = new QVBoxLayout();
+		layout->addLayout(m_progress_list, layout->rowCount(), 0, 1, 2);
+	}
 
 	//add to widgets to QMainWindow
 	{

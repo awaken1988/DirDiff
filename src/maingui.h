@@ -12,11 +12,13 @@
 #include <vector>
 #include <QWidget>
 #include <QGridLayout>
+#include <QVBoxLayout>
 #include <QGroupBox>
 #include <QTreeView>
 #include <QLabel>
 #include <QMainWindow>
 #include <QPushButton>
+#include <QProgressBar>
 #include "fsdiff.h"
 #include "treemodel.h"
 #include "sortfilterproxy.h"
@@ -47,6 +49,8 @@ protected:
 	QGridLayout* m_layout;
 	QTabWidget* m_detail_tab;
 	int m_detail_tab_idx=0;
+
+	QVBoxLayout* m_progress_list;
 
 	const bool m_with_filter = true;
 

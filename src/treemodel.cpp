@@ -169,3 +169,46 @@ void TreeModel::setupModelData()
     rootItem = fsdiff::compare(left, right);
     //rootItem = fsdiff::list_dir_rekursive(left);
 }
+
+void TreeModel::startFileHash( std::function<void()> aOnReady, std::function<void(int,int,int)> aStep  )
+{
+	QThread* thread = new QThread;
+	FilehashWorker* worker = new FilehashWorker(rootItem);
+
+	worker->moveToThread(thread);
+	connect(this, &TreeModel::operateFilehash, worker, &FilehashWorker::hashAllFiles);
+	connect(worker, &FilehashWorker::resultReady, this, aOnReady );
+	connect(worker, &FilehashWorker::stepReady, this, aStep );
+
+	connect(worker, SIGNAL (finished()), thread, SLOT (quit()));
+	connect(worker, SIGNAL (finished()), worker, SLOT (deleteLater()));
+	connect(thread, SIGNAL (finished()), thread, SLOT (deleteLater()));
+
+
+	thread->start();
+	emit operateFilehash();
+}
+
+
+
+
+FilehashWorker::FilehashWorker(shared_ptr<fsdiff::diff_t>& aTree)
+	: m_tree(aTree)
+{
+
+}
+
+FilehashWorker::~FilehashWorker()
+{
+	cout<<"FilehashWorker deleted";
+}
+
+void FilehashWorker::hashAllFiles()
+{
+	m_tree->createFileHashes([this](int aMin, int aMax, int aCurr) {
+		emit stepReady(aMin, aMax, aCurr);
+	});
+
+	emit resultReady();
+}
+

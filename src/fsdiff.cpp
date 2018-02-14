@@ -70,12 +70,23 @@ namespace fsdiff
 		return false;
 	}
 
-	void diff_t::createFileHashes()
+	void diff_t::createFileHashes(std::function<void(int,int,int)> aStep)
 	{
 		file_hashes = shared_ptr<file_hash_t>(new file_hash_t);
 
+		size_t filesize_sum = 0;
+
+		foreach_diff_item(*this, [this, &filesize_sum](diff_t& aTree) {
+			for(int iSide=0; iSide<2; iSide++) {
+				if( is_regular_file(aTree.fullpath[iSide]) ) {
+					filesize_sum += file_size(aTree.fullpath[iSide]);
+				}
+			}
+		});
+
 		//calculate hashsum
-		foreach_diff_item(*this, [this](diff_t& aTree) {
+		size_t filesize_hashed = 0;
+		foreach_diff_item(*this, [this,&filesize_hashed,filesize_sum, aStep](diff_t& aTree) {
 			for(int iSide=0; iSide<2; iSide++) {
 				if( is_regular_file(aTree.fullpath[iSide]) ) {
 					QFile hashFile(aTree.fullpath[iSide].c_str());
@@ -93,11 +104,25 @@ namespace fsdiff
 					file_hashes->path_hash[aTree.fullpath[iSide]] = result_vector;
 					file_hashes->hash_path[result_vector].push_back(aTree.fullpath[iSide]);
 					file_hashes->path_diff[aTree.fullpath[iSide]] = &aTree;
+
+					{
+						for(int iDebug=0; iDebug<0x800000; iDebug++) {
+							volatile int a=0, b=1, c=3;
+							volatile double sum0 = pow(a, 1);
+							volatile double sum1 = pow(a, 2);
+							volatile double sum2 = pow(a, 3);
+							volatile double sum3 = pow(a, 4);
+						}
+					}
+
+					filesize_hashed += file_size(aTree.fullpath[iSide]);
+					aStep(0, filesize_sum, filesize_hashed);
 				}
 			}
 		});
 
 		//set file_hashes for every child
+		//TODO: is this thread save?
 		foreach_diff_item(*this, [this](diff_t& aTree) {
 			aTree.file_hashes = this->file_hashes;
 		});
