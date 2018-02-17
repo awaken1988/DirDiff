@@ -11,6 +11,20 @@ enum class column_e {
     LEN,
 };
 
+static QString column_e_str(column_e aColumn)
+{
+	switch(aColumn)
+	{
+	case column_e::ITEM_NAME:		return "Filename";
+	case column_e::ITEM_CAUSE:	return "Cause";
+	case column_e::DIFF_SIZE:		return "Size Difference";
+	case column_e::HASH:			return "Hashvalue";
+	case column_e::LEN:			return "Length";
+	}
+
+	return "";
+}
+
 TreeModel::TreeModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> aDiffTree)
     : QAbstractItemModel(parent)
 {
@@ -90,10 +104,10 @@ Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
 QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
                                int role) const
 {
-    //if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
-    //    return rootItem->data(section);
+	if (role != Qt::DisplayRole)
+	    return QVariant();
 
-    return QVariant();
+	return column_e_str( static_cast<column_e>(section));
 }
 
 QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent)

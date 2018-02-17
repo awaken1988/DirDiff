@@ -37,6 +37,8 @@ signals:
 private:
     void setupModelData();
 
+//TODO: make this private again
+public:
     shared_ptr<fsdiff::diff_t>  rootItem;
 
 };

@@ -8,6 +8,7 @@
 #include "detailgui.h"
 #include "maingui.h"
 #include "opengui.h"
+#include "duplicatemodel.h"
 #include <QMimeDatabase>
 #include <QSpacerItem>
 #include <QVBoxLayout>
@@ -73,8 +74,24 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 				auto progress = new QProgressBar();
 				m_progress_list->addWidget(progress);
 
-				auto ready = [progress]()->void {
+				auto ready = [progress, this]()->void {
 					progress->hide();
+
+					{
+						auto duplicateWidget = new QWidget();
+						auto duplicateLayout = new QGridLayout();
+						duplicateWidget->setLayout(duplicateLayout);
+
+						auto duplicateModel = new DuplicateModel(nullptr, m_model->rootItem, 0);
+						auto duplicateTree = new QTreeView();
+						duplicateTree->setModel(duplicateModel);
+
+						duplicateLayout->addWidget(duplicateTree, 0, 0);
+
+						m_main_tab->addTab(duplicateWidget, "Duplicates");
+					}
+
+
 					return;
 				};
 				auto step = [progress](int aMin, int aMax, int aCurr)->void {
@@ -139,8 +156,20 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 	//add to widgets to QMainWindow
 	{
 		auto centralWidget = new QWidget();
-		centralWidget->setLayout(layout);
+		auto centralLayout = new QGridLayout();
+		centralWidget->setLayout(centralLayout);
 		setCentralWidget(centralWidget);
+
+		//add main tab (e.g for diff and duplicate category)
+		m_main_tab = new QTabWidget();
+		centralLayout->addWidget(m_main_tab, 0, 0);
+
+		//diff tab
+		{
+			auto diffTabContent = new QWidget();
+			diffTabContent->setLayout(layout);
+			m_main_tab->addTab(diffTabContent, "Diff");
+		}
 	}
 
 }

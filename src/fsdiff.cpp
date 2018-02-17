@@ -105,6 +105,7 @@ namespace fsdiff
 					file_hashes->hash_path[result_vector].push_back(aTree.fullpath[iSide]);
 					file_hashes->path_diff[aTree.fullpath[iSide]] = &aTree;
 
+					if(false)
 					{
 						for(int iDebug=0; iDebug<0x800000; iDebug++) {
 							volatile int a=0, b=1, c=3;

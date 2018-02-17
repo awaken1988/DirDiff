@@ -40,6 +40,8 @@ public slots:
 protected:
 	void init_left_right_info();
 
+	QWidget* startDiffHashes();
+	QWidget* startDiffDuplicates();
 protected:
 	OpenGui* m_open;
 	std::array<QGroupBox*, 2> m_cmp_detail;
@@ -51,6 +53,8 @@ protected:
 	int m_detail_tab_idx=0;
 
 	QVBoxLayout* m_progress_list;
+
+	QTabWidget* m_main_tab;
 
 	const bool m_with_filter = true;
 

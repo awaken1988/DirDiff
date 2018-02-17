@@ -39,10 +39,10 @@ OpenGui::OpenGui(QWidget *parent)
 		auto bntDialog	= new QPushButton(this->style()->standardIcon(QStyle::SP_DialogOpenButton), "Open", this);
 
 		if( 0 == iSide ) {
-			m_paths[iSide]->setText("/home/martin/Dropbox/Programming/tools_and_snippets/cpp_snippets/");
+			m_paths[iSide]->setText("/home/martin/Dropbox/Programming/DirDiff/left/");
 		}
 		else {
-			m_paths[iSide]->setText("/home/martin/Dropbox/Programming/tools_and_snippets/cpp_snippets_copy/");
+			m_paths[iSide]->setText("/home/martin/Dropbox/Programming/DirDiff/right/");
 		}
 
 		decltype(m_paths[iSide]) curr_paths = m_paths[iSide];
