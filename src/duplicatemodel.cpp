@@ -8,7 +8,10 @@
 DuplicateModel::DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> aDiffTree, int aSide)
     : QAbstractItemModel(parent)
 {
-	fsdiff::foreach_diff_item(*aDiffTree, [aSide, this](fsdiff::diff_t& aTree) {
+
+	set<vector<unsigned char>> hashes_used;
+
+	fsdiff::foreach_diff_item(*aDiffTree, [aSide, this, &hashes_used](fsdiff::diff_t& aTree) {
 
 		if( !is_regular_file(aTree.fullpath[aSide]) )
 			return;
@@ -20,6 +23,9 @@ DuplicateModel::DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> 
 			return;
 
 		auto hash = findItem->second;
+		if( hashes_used.find(hash) != hashes_used.end() )
+			return;
+
 		auto findHash = aTree.file_hashes->hash_path.find(hash);
 
 		std::vector<fsdiff::diff_t*> result;
@@ -30,7 +36,12 @@ DuplicateModel::DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> 
 			cout<<"	duplicate file"<<iPath<<endl;
 		}
 
-		m_duplicate_items.push_back(result);
+		if( result.size() > 1 ) {
+			m_duplicate_items.push_back(result);
+		}
+
+		hashes_used.insert(hash);
+
 	});
 }
 
@@ -94,24 +105,33 @@ QModelIndex DuplicateModel::index(int row, int column, const QModelIndex &parent
     if (!hasIndex(row, column, parent))
         return QModelIndex();
 
+    const std::tuple<int,int>* indice = nullptr;
+
     if (!parent.isValid()) {
-    	return createIndex(row, column, (void*)find_create_indice(std::tuple<int,int>(-1, -1)));
+    	indice = find_create_indice(std::tuple<int,int>(-1, -1));
     }
     else {
-    	auto indice = static_cast<std::tuple<int,int>*>(parent.internalPointer());
+    	indice = static_cast<std::tuple<int,int>*>(parent.internalPointer());
+    }
 
-    	//TODO: try tie operator
-    	int idx0 = std::get<0>(*indice);
-    	int idx1 = std::get<1>(*indice);
+    const int idx0 = std::get<0>(*indice);
+    const int idx1 = std::get<1>(*indice);
 
-    	if( -1 == idx0 || idx0 >= m_duplicate_items.size() )
-    		return QModelIndex();
+    if( -1 != idx0 && -1 != idx1) {
+    	return QModelIndex();
+    }
+    if( -1 != idx0 && -1 == idx1 ) {
 
-    	if( m_duplicate_items[idx0].size() >= idx1  )
+    	if( row >= m_duplicate_items[idx0].size() )
     		return QModelIndex();
 
     	return createIndex(row, column, (void*)find_create_indice(std::tuple<int,int>(idx0, row)));
     }
+
+    if( row >= m_duplicate_items.size() )
+        		return QModelIndex();
+
+    return createIndex(row, column, (void*)find_create_indice(std::tuple<int,int>(row, -1)));
 }
 
 QModelIndex DuplicateModel::parent(const QModelIndex &index) const
@@ -132,9 +152,9 @@ QModelIndex DuplicateModel::parent(const QModelIndex &index) const
     	return QModelIndex();
 
     if( -1 == idx1 )
-    	return createIndex(idx0, 0, (void*)find_create_indice(std::tuple<int,int>(0, -1)));
+    	return createIndex(idx0, 0, (void*)find_create_indice(std::tuple<int,int>(-1, -1)));
 
-    return createIndex(idx1, 0, (void*)find_create_indice(std::tuple<int,int>(0, -1)));
+    return createIndex(idx1, 0, (void*)find_create_indice(std::tuple<int,int>(idx0, -1)));
 }
 
 int DuplicateModel::rowCount(const QModelIndex &parent) const
@@ -155,7 +175,7 @@ int DuplicateModel::rowCount(const QModelIndex &parent) const
 		return m_duplicate_items.size();
 	}
 
-	if( idx1 != -1 ) {
+	if( idx1 == -1 ) {
 		return m_duplicate_items[idx0].size();
 	}
 
