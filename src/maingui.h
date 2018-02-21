@@ -42,6 +42,9 @@ protected:
 
 	QWidget* startDiffHashes();
 	QWidget* startDiffDuplicates();
+
+	QPushButton* createFileHashBtn();
+	QWidget* createFilterBtns();
 protected:
 	OpenGui* m_open;
 	std::array<QGroupBox*, 2> m_cmp_detail;

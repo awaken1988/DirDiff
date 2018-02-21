@@ -46,96 +46,17 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 		m_filter->setSourceModel(m_model);
 	}
 
-	QGridLayout* layout = new QGridLayout;
-	m_layout = layout;
+	m_layout = new QGridLayout;
 
-	//filter
-	{
-		QHBoxLayout* filter_layout = new QHBoxLayout;
+	//filter and other buttons
+	m_layout->addWidget(createFilterBtns(), m_layout->rowCount(), 0, 1, 2);
 
-		for(auto iCause: fsdiff::cause_t_list()) {
-			auto* chBx = new QCheckBox( fsdiff::cause_t_str(iCause).c_str(), this );
-			chBx->setCheckState(Qt::Checked);
-			filter_layout->addWidget(chBx);
-
-			QObject::connect(chBx, &QCheckBox::stateChanged, [iCause, this](int aState) {
-				m_filter->set_cause_filter(iCause, static_cast<bool>(aState));
-				cout<<"change filter: name="<<cause_t_str(iCause)<<"; state="<<aState<<endl;
-			});
-		}
-
-		filter_layout->addStretch(1);
-
-		//Create File Hashes
-		{
-			auto ret = new QPushButton("Compare Files");
-			QObject::connect(ret, &QPushButton::clicked, [this]() {
-
-				auto progress = new QProgressBar();
-				m_progress_list->addWidget(progress);
-
-				auto ready = [progress, this]()->void {
-					progress->hide();
-
-					{
-						auto duplicateWidget = new QWidget();
-						auto duplicateLayout = new QGridLayout();
-						duplicateWidget->setLayout(duplicateLayout);
-
-						auto duplicateModel = new DuplicateModel(nullptr, m_model->rootItem, 0);
-						auto duplicateTree = new QTreeView();
-						duplicateTree->setModel(duplicateModel);
-
-						duplicateLayout->addWidget(duplicateTree, 0, 0);
-
-						m_main_tab->addTab(duplicateWidget, "Duplicates");
-					}
-
-
-					return;
-				};
-				auto step = [progress](int aMin, int aMax, int aCurr)->void {
-					progress->setMinimum(aMin);
-					progress->setMaximum(aMax);
-					progress->setValue(aCurr);
-
-					progress->setTextVisible(true);
-					progress->setFormat("Hash files");
-					return;
-				};
-				m_model->startFileHash( ready, step );
-			});
-			filter_layout->addWidget(ret);
-		};
-
-		//collapse all
-		{
-			auto ret = new QPushButton("Collapse All");
-			QObject::connect(ret, &QPushButton::clicked, [this]() {
-				m_tree_view->collapseAll();
-			});
-			filter_layout->addWidget(ret);
-		};
-
-		//expand all
-		{
-			auto ret = new QPushButton("Expand All");
-			QObject::connect(ret, &QPushButton::clicked, [this]() {
-				m_tree_view->expandAll();
-			});
-			filter_layout->addWidget(ret);
-		};
-
-
-
-		layout->addLayout(filter_layout, layout->rowCount(), 0, 1, 2);
-	}
 
 	//tree
 	{
 		m_tree_view = new QTreeView(this);
 		m_tree_view->setModel( m_with_filter ? static_cast<QAbstractItemModel*>(m_filter) : static_cast<QAbstractItemModel*>(m_model));
-		layout->addWidget(m_tree_view, layout->rowCount(), 0, 1, 2);
+		m_layout->addWidget(m_tree_view, m_layout->rowCount(), 0, 1, 2);
 
 		QObject::connect(m_tree_view, &QTreeView::clicked, this, &MainGui::clicked_diffitem);
 
@@ -144,13 +65,13 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 
 	//left right box
 	m_detail_tab = new QTabWidget(this);
-	layout->addWidget(m_detail_tab, layout->rowCount(), 0, 1, 2);
+	m_layout->addWidget(m_detail_tab, m_layout->rowCount(), 0, 1, 2);
 	init_left_right_info();
 
 	//Progres bar
 	{
 		m_progress_list = new QVBoxLayout();
-		layout->addLayout(m_progress_list, layout->rowCount(), 0, 1, 2);
+		m_layout->addLayout(m_progress_list, m_layout->rowCount(), 0, 1, 2);
 	}
 
 	//add to widgets to QMainWindow
@@ -167,7 +88,7 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 		//diff tab
 		{
 			auto diffTabContent = new QWidget();
-			diffTabContent->setLayout(layout);
+			diffTabContent->setLayout(m_layout);
 			m_main_tab->addTab(diffTabContent, "Diff");
 		}
 	}
@@ -212,8 +133,97 @@ void MainGui::clicked_diffitem(const QModelIndex &index)
 	//restore las tab
 	m_detail_tab_idx = m_detail_tab->count() <= m_detail_tab_idx ? 0 : m_detail_tab_idx;
 	m_detail_tab->setCurrentIndex(m_detail_tab_idx);
+}
 
+QPushButton* MainGui::createFileHashBtn()
+{
+	auto ret = new QPushButton("Compare Files");
+	QObject::connect(ret, &QPushButton::clicked, [this, ret]() {
 
+		ret->deleteLater();
+
+		auto progress = new QProgressBar();
+		m_progress_list->addWidget(progress);
+
+		auto ready = [progress, this]()->void {
+			progress->hide();
+
+			{
+				auto duplicateWidget = new QWidget();
+				auto duplicateLayout = new QGridLayout();
+				duplicateWidget->setLayout(duplicateLayout);
+
+				auto duplicateModel = new DuplicateModel(nullptr, m_model->rootItem, 0);
+				auto duplicateTree = new QTreeView();
+				duplicateTree->setModel(duplicateModel);
+
+				duplicateLayout->addWidget(duplicateTree, 0, 0);
+
+				m_main_tab->addTab(duplicateWidget, "Duplicates");
+
+				duplicateTree->expandAll();
+			}
+
+			return;
+		};
+		auto step = [progress](int aMin, int aMax, int aCurr)->void {
+			progress->setMinimum(aMin);
+			progress->setMaximum(aMax);
+			progress->setValue(aCurr);
+
+			progress->setTextVisible(true);
+			progress->setFormat("Hash files");
+			return;
+		};
+		m_model->startFileHash( ready, step );
+	});
+
+	return ret;
+}
+
+QWidget* MainGui::createFilterBtns()
+{
+	auto ret = new QWidget();
+	QHBoxLayout* filter_layout = new QHBoxLayout;
+	ret->setLayout(filter_layout);
+
+	for(auto iCause: fsdiff::cause_t_list()) {
+		auto* chBx = new QCheckBox( fsdiff::cause_t_str(iCause).c_str(), this );
+		chBx->setCheckState(Qt::Checked);
+		filter_layout->addWidget(chBx);
+
+		QObject::connect(chBx, &QCheckBox::stateChanged, [iCause, this](int aState) {
+			m_filter->set_cause_filter(iCause, static_cast<bool>(aState));
+			cout<<"change filter: name="<<cause_t_str(iCause)<<"; state="<<aState<<endl;
+		});
+	}
+
+	filter_layout->addStretch(1);
+
+	//Create File Hashes
+	{
+		filter_layout->addWidget( createFileHashBtn() );
+	};
+
+	//collapse all
+	{
+		auto ret = new QPushButton("Collapse All");
+		QObject::connect(ret, &QPushButton::clicked, [this]() {
+			m_tree_view->collapseAll();
+		});
+		filter_layout->addWidget(ret);
+	};
+
+	//expand all
+	{
+		auto ret = new QPushButton("Expand All");
+		QObject::connect(ret, &QPushButton::clicked, [this]() {
+			m_tree_view->expandAll();
+		});
+		filter_layout->addWidget(ret);
+	};
+
+	return ret;
 }
 
 void MainGui::init_left_right_info()
