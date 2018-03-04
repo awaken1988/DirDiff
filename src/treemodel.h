@@ -28,14 +28,20 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
+    void iterate_over_all(std::function<void(QModelIndex)> aFunc);
+
 
 	void startFileHash( std::function<void()> aOnReady, std::function<void(int,int,int)> aStep  );
+
+	void refresh();
 
 signals:
 	void operateFilehash();
 
 private:
     void setupModelData();
+    void iterate_over_all_inner(std::function<void(QModelIndex)> aFunc, QModelIndex aModelIndex);
+
 
 //TODO: make this private again
 public:

@@ -32,6 +32,12 @@ DuplicateModel::DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> 
 
 		cout<<"duplicate hash="<<hash.size()<<endl;
 		for(auto iPath: findHash->second) {
+
+			auto diffPtr = aTree.file_hashes->path_diff[iPath];
+
+			if( iPath == diffPtr->fullpath[aSide?0:1] )
+				continue;
+
 			result.push_back(aTree.file_hashes->path_diff[iPath]);
 			cout<<"	duplicate file"<<iPath<<endl;
 		}
@@ -41,8 +47,15 @@ DuplicateModel::DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> 
 		}
 
 		hashes_used.insert(hash);
-
 	});
+
+	for(const auto& iArr: m_duplicate_items) {
+		std::cout<<"bla"<<std::endl;
+		for(const auto& iElement: iArr) {
+			std::cout<<iElement->fullpath[aSide].c_str()<<std::endl;
+		}
+	}
+
 }
 
 DuplicateModel::~DuplicateModel()

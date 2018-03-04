@@ -80,11 +80,11 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
 
     	switch( item->cause )
     	{
-    	case cause_t::ADDED: 		return QBrush( Qt::green );
-    	case cause_t::DELETED:		return QBrush( Qt::cyan );
-    	case cause_t::DIR_TO_FILE:	return QBrush( Qt::red );
-    	case cause_t::FILE_TO_DIR:	return QBrush( Qt::red );
-    	//case cause_t::CONTENT:		return QBrush( Qt::red );
+    	case cause_t::ADDED: 		return QBrush( QColor(194, 255, 168) );
+    	case cause_t::DELETED:		return QBrush( QColor(214, 255, 250) );
+    	case cause_t::DIR_TO_FILE:	return QBrush( QColor(255, 245, 186) );
+    	case cause_t::FILE_TO_DIR:	return QBrush( QColor(255, 245, 186) );
+    	case cause_t::CONTENT:		return QBrush( QColor(255, 209, 209) );
     	default:					return QVariant();
     	}
     }
@@ -116,20 +116,17 @@ QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent)
     if (!hasIndex(row, column, parent))
         return QModelIndex();
 
-    fsdiff::diff_t* parentItem;
+    fsdiff::diff_t* parentItem = rootItem.get();
 
-    if (!parent.isValid()) {
-        parentItem = rootItem.get();
-    }
-    else {
+    if (parent.isValid()) {
         parentItem = static_cast<fsdiff::diff_t*>(parent.internalPointer());
     }
 
     if( (size_t)row >= parentItem->childs.size() ) {
-    	return QModelIndex();
+    	throw "TreeModel::index index rownumber to height";
     }
 
-    return createIndex(row, column, parentItem->childs[row].get());
+    return createIndex(row, column, (void*)(parentItem->childs[row].get()));
 }
 
 QModelIndex TreeModel::parent(const QModelIndex &index) const
@@ -146,33 +143,29 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
     	return QModelIndex();
     }
 
-    int row = 0;
-    for(size_t i=0; i<parentItem->childs.size(); i++) {
-        if( parentItem->childs[i].get() == childItem  ) {
+    int row = -1;
+    for(size_t i=0; i<parentItem->parent->childs.size(); i++) {
+        if( parentItem->parent->childs[i].get() == parentItem  ) {
             row = i;
         }
     }
 
-    return createIndex(row, 0, parentItem);
+    if( row < 0 )
+    	throw "TreeModel::parent: cannot find parent index";
+
+    return createIndex(row, 0, (void*)parentItem);
 }
 
 int TreeModel::rowCount(const QModelIndex &parent) const
 {
-    fsdiff::diff_t* parentItem = nullptr;
+    fsdiff::diff_t* parentItem = rootItem.get();
     if (parent.column() > 0)
         return 0;
 
-    if (!parent.isValid())
-        parentItem = rootItem.get();
-    else
+    if (parent.isValid())
         parentItem = static_cast<fsdiff::diff_t*>(parent.internalPointer());
 
-    if( nullptr == parentItem )
-    	return 0;
-
-    int ret = parentItem->childs.size();
-
-    return ret;
+    return parentItem->childs.size();
 }
 
 void TreeModel::setupModelData()
@@ -182,6 +175,27 @@ void TreeModel::setupModelData()
 
     rootItem = fsdiff::compare(left, right);
     //rootItem = fsdiff::list_dir_rekursive(left);
+}
+
+void TreeModel::iterate_over_all_inner(std::function<void(QModelIndex)> aFunc, QModelIndex aModelIndex)
+{
+	if( aModelIndex.isValid() ) {
+			aFunc(aModelIndex);
+		}
+
+		if( !hasChildren(aModelIndex) ) {
+			return; }
+
+		const auto rows = rowCount(aModelIndex);
+
+		for(int iRow=0; iRow<rows; iRow++) {
+			iterate_over_all_inner( aFunc, index(iRow, 0, aModelIndex) );
+	}
+}
+
+void TreeModel::iterate_over_all(std::function<void(QModelIndex)> aFunc)
+{
+	iterate_over_all_inner(aFunc, QModelIndex() );
 }
 
 void TreeModel::startFileHash( std::function<void()> aOnReady, std::function<void(int,int,int)> aStep  )
@@ -203,6 +217,11 @@ void TreeModel::startFileHash( std::function<void()> aOnReady, std::function<voi
 	emit operateFilehash();
 }
 
+void TreeModel::refresh()
+{
+	beginResetModel();
+	endResetModel();
+}
 
 
 

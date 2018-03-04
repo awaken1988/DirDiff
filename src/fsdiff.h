@@ -33,6 +33,7 @@ namespace fsdiff
 		DELETED,
 		FILE_TO_DIR,
 		DIR_TO_FILE,
+		CONTENT,
 	};
 
 	string cause_t_str(cause_t aCause);

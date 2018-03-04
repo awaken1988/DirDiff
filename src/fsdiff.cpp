@@ -36,6 +36,7 @@ namespace fsdiff
 			case cause_t::DELETED:		return "DELETED";
 			case cause_t::FILE_TO_DIR:	return "FILE_TO_DIR";
 			case cause_t::DIR_TO_FILE:	return "DIR_TO_FILE";
+			case cause_t::CONTENT:		return "CONTENT";
 			default: return "UNKNOWN";
 		}
 	}
@@ -105,17 +106,6 @@ namespace fsdiff
 					file_hashes->hash_path[result_vector].push_back(aTree.fullpath[iSide]);
 					file_hashes->path_diff[aTree.fullpath[iSide]] = &aTree;
 
-					if(false)
-					{
-						for(int iDebug=0; iDebug<0x800000; iDebug++) {
-							volatile int a=0, b=1, c=3;
-							volatile double sum0 = pow(a, 1);
-							volatile double sum1 = pow(a, 2);
-							volatile double sum2 = pow(a, 3);
-							volatile double sum3 = pow(a, 4);
-						}
-					}
-
 					filesize_hashed += file_size(aTree.fullpath[iSide]);
 					aStep(0, filesize_sum, filesize_hashed);
 				}
@@ -126,6 +116,19 @@ namespace fsdiff
 		//TODO: is this thread save?
 		foreach_diff_item(*this, [this](diff_t& aTree) {
 			aTree.file_hashes = this->file_hashes;
+		});
+
+		//update diffcause
+		foreach_diff_item(*this, [this,&filesize_hashed,filesize_sum, aStep](diff_t& aTree) {
+
+			if( cause_t::SAME != aTree.cause )
+				return;
+
+			auto hashLeft = file_hashes->path_hash[aTree.fullpath[0]];
+			auto hashRight = file_hashes->path_hash[aTree.fullpath[1]];
+
+			if( hashLeft != hashRight )
+				aTree.cause = cause_t::CONTENT;
 		});
 	}
 

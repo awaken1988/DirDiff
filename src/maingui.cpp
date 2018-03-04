@@ -21,6 +21,7 @@
 #include <QHBoxLayout>
 #include <QApplication>
 #include <QStatusBar>
+#include <QAction>
 
 MainGui::MainGui(  )
 {
@@ -61,6 +62,7 @@ void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
 		QObject::connect(m_tree_view, &QTreeView::clicked, this, &MainGui::clicked_diffitem);
 
 		m_tree_view->setColumnWidth(0, 300);
+		m_tree_view->setAutoExpandDelay(0);
 	}
 
 	//left right box
@@ -162,6 +164,44 @@ QPushButton* MainGui::createFileHashBtn()
 				m_main_tab->addTab(duplicateWidget, "Duplicates");
 
 				duplicateTree->expandAll();
+				duplicateTree->setContextMenuPolicy(Qt::ActionsContextMenu);
+
+				//reset main model
+				m_model->refresh();
+
+				//show in diffview
+				auto diffview_action = new QAction("Show in Diffview", duplicateWidget);
+
+				connect(diffview_action, &QAction::triggered, [duplicateModel,duplicateTree,this]() {
+					auto idx = duplicateTree->currentIndex();
+
+					auto result = duplicateModel->data(idx, Qt::DisplayRole).toString();
+
+					cout<<result.toStdString()<<endl;
+
+					//look if we can find the string
+					{
+						m_model->iterate_over_all( [this,result](QModelIndex aModelIndex) {
+
+							auto diffPtr = static_cast<fsdiff::diff_t*>(aModelIndex.internalPointer());
+							if( nullptr == diffPtr )
+								return;
+
+							if( diffPtr->fullpath[0] == result.toStdString() ) {
+								std::cout<<"found: "<<diffPtr->fullpath[0].c_str()<<std::endl;
+
+								//m_tree_view->selectionModel()->select(aModelIndex, QItemSelectionModel::ClearAndSelect);
+								m_tree_view->scrollTo(aModelIndex, QAbstractItemView::PositionAtCenter);
+							}
+						});
+
+						m_main_tab->setCurrentIndex(0); //TODO: make a global mapping between indices and tabs
+					}
+
+				});
+
+				duplicateTree->addAction(diffview_action);
+
 			}
 
 			return;
