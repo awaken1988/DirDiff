@@ -155,7 +155,7 @@ QPushButton* MainGui::createFileHashBtn()
 				auto duplicateLayout = new QGridLayout();
 				duplicateWidget->setLayout(duplicateLayout);
 
-				auto duplicateModel = new DuplicateModel(nullptr, m_model->rootItem, 0);
+				auto duplicateModel = new DuplicateModel(nullptr, m_model->rootItem, fsdiff::diff_t::LEFT);
 				auto duplicateTree = new QTreeView();
 				duplicateTree->setModel(duplicateModel);
 

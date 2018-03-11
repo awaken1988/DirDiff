@@ -51,6 +51,7 @@ namespace fsdiff
 
 	struct diff_t
 	{
+		//TODO: rename this to side_t
 		enum idx_t {
 			LEFT=0,
 			RIGHT=1,

@@ -12,6 +12,11 @@
 #include <QPlainTextEdit>
 #include <QPixmap>
 #include <QFrame>
+#include <QDesktopServices>
+#include <QPushButton>
+#include <QUrl>
+#include <QClipboard>
+#include <QApplication>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/exception.hpp>
 #include <QScrollBar>
@@ -43,17 +48,77 @@ namespace detailgui
 		int row = 0;
 		int col_offset = aIdx*3;
 
-		//symbol
+		//header
 		{
-			QFileIconProvider icon_provider;
-			QIcon icon = icon_provider.icon( QFileInfo(aDiff->fullpath[aIdx].string().c_str()) );
+			auto header_layout = new QHBoxLayout();
+			const auto full_path = aDiff->fullpath[aIdx];
 
-			QLabel* icon_label = new QLabel;
-			icon_label->setPixmap(icon.pixmap(80,80));
+			//symbol
+			{
+				QFileIconProvider icon_provider;
+				QIcon icon = icon_provider.icon( QFileInfo(aDiff->fullpath[aIdx].string().c_str()) );
 
-			aGrid->addWidget(icon_label, row++, 1+col_offset);
+				QLabel* icon_label = new QLabel;
+				icon_label->setPixmap(icon.pixmap(80,80));
 
+				header_layout->addWidget(icon_label);
+			}
+			//header_layout->setSpacing(1);
+
+			//open file
+			if( boost::filesystem::is_regular_file( aDiff->fullpath[aIdx] ) )
+			{
+
+				auto btnExplorer = new QPushButton("Open File");
+				btnExplorer->setSizePolicy(QSizePolicy::Fixed , QSizePolicy::Fixed);
+
+				QObject::connect(btnExplorer, &QPushButton::clicked, [full_path](bool aChecked) {
+
+					QDesktopServices::openUrl(QUrl(full_path.generic_string().c_str()));
+
+				});
+
+				header_layout->addWidget(btnExplorer);
+			}
+
+			//open directory
+			{
+				auto btnExplorer = new QPushButton("Open Directory");
+				btnExplorer->setSizePolicy(QSizePolicy::Fixed , QSizePolicy::Fixed);
+
+
+				QObject::connect(btnExplorer, &QPushButton::clicked, [full_path](bool aChecked) {
+
+					if( is_regular_file(full_path) ) {
+						QDesktopServices::openUrl(QUrl(full_path.parent_path().generic_string().c_str()));
+					}
+					else {
+						QDesktopServices::openUrl(QUrl(full_path.generic_string().c_str()));
+					}
+
+				});
+
+				header_layout->addWidget(btnExplorer);
+			}
+
+			//copy full path
+			{
+				auto btnExplorer = new QPushButton("Path to Clipboard");
+				btnExplorer->setSizePolicy(QSizePolicy::Fixed , QSizePolicy::Fixed);
+				QObject::connect(btnExplorer, &QPushButton::clicked, [full_path](bool aChecked) {
+
+					QClipboard *clipboard = QApplication::clipboard();
+					QString originalText = clipboard->text();
+					clipboard->setText(full_path.generic_string().c_str());
+				});
+
+				header_layout->addWidget(btnExplorer);
+			}
+
+			aGrid->addLayout(header_layout, row++, 1+col_offset, 1 , 1);
 		}
+
+
 
 		//last name
 		{

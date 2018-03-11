@@ -5,8 +5,8 @@
 
 
 
-DuplicateModel::DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> aDiffTree, int aSide)
-    : QAbstractItemModel(parent)
+DuplicateModel::DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> aDiffTree, fsdiff::diff_t::idx_t aSide)
+    : QAbstractItemModel(parent), m_side(aSide)
 {
 
 	set<vector<unsigned char>> hashes_used;
@@ -84,10 +84,15 @@ QVariant DuplicateModel::data(const QModelIndex &index, int role) const
     	int idx1 = std::get<1>(*indice);
 
     	if( -1 == idx1 ) {
-    		return "bla";
+    		fsdiff::diff_t* diff_item = m_duplicate_items[idx0][0];
+
+    		const auto filesize = boost::filesystem::file_size(diff_item->fullpath[m_side]);
+
+    		return QString("Filesize=%1")
+    				.arg(pretty_print_size(filesize).c_str());
     	}
     	else {
-    		return QString("%1").arg(m_duplicate_items[idx0][idx1]->fullpath[0].c_str());
+    		return QString("%1").arg(m_duplicate_items[idx0][idx1]->fullpath[m_side].c_str());
     	}
 
 
@@ -104,14 +109,14 @@ Qt::ItemFlags DuplicateModel::flags(const QModelIndex &index) const
     return QAbstractItemModel::flags(index);
 }
 
-//QVariant DuplicateModel::headerData(int section, Qt::Orientation orientation,
-//                               int role) const
-//{
-//	if (role != Qt::DisplayRole)
-//	    return QVariant();
-//
-//	return QVariant();
-//}
+QVariant DuplicateModel::headerData(int section, Qt::Orientation orientation,
+                               int role) const
+{
+	if (role != Qt::DisplayRole)
+	    return QVariant();
+
+	return QVariant();
+}
 
 QModelIndex DuplicateModel::index(int row, int column, const QModelIndex &parent) const
 {
