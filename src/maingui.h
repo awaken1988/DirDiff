@@ -35,7 +35,7 @@ public:
 
 public slots:
 	void clicked_diffitem(const QModelIndex &index);
-	void startDiff(std::vector<boost::filesystem::path> aPaths);
+	void startDiff(shared_ptr<fsdiff::diff_t> aDiff);
 
 protected:
 	void init_left_right_info();

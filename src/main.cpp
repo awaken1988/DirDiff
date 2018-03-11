@@ -36,16 +36,24 @@ int main(int argc, char **argv)
 
 	MainGui* mainGui = nullptr;
 
+	shared_ptr<fsdiff::diff_t> all_diff;
+
 	QTimer::singleShot(0, [&](){
 
 		auto diffpath = getPathByArg(argc, argv);
 		bool ok = false;
+		QMainWindow mainWindow;
+
+		mainGui = new MainGui();
+		mainGui->show();
+		mainGui->resize(QDesktopWidget().availableGeometry(&mainWindow).size() * 0.7);
 
 		if( diffpath.size() < 2 ) {
 			OpenGui openPaths;
 
 			if( QDialog::Accepted == openPaths.exec() ) {
 				diffpath = openPaths.m_paths_str;
+				all_diff = openPaths.m_diff;
 				ok = true;
 			}
 			else {
@@ -57,12 +65,9 @@ int main(int argc, char **argv)
 		}
 
 		if( ok ) {
-			QMainWindow mainWindow;
-
-			mainGui = new MainGui();
-			mainGui->resize(QDesktopWidget().availableGeometry(&mainWindow).size() * 0.7);;
-			mainGui->startDiff(diffpath);
+			mainGui->startDiff(all_diff);
 			mainGui->show();
+
 		}
 	});
 

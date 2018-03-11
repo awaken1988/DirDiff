@@ -173,7 +173,7 @@ void TreeModel::setupModelData()
     path  left("/home/martin/Dropbox/Programming/tools_and_snippets/cpp_snippets/");
     path right("/home/martin/Dropbox/Programming/tools_and_snippets/cpp_snippets_copy/");
 
-    rootItem = fsdiff::compare(left, right);
+    //rootItem = fsdiff::compare(left, right);
     //rootItem = fsdiff::list_dir_rekursive(left);
 }
 

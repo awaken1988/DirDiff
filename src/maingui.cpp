@@ -33,12 +33,17 @@ MainGui::~MainGui()
 
 }
 
-void MainGui::startDiff(std::vector<boost::filesystem::path> aPaths)
+void MainGui::startDiff(shared_ptr<fsdiff::diff_t> aDiff)
 {
 	statusBar()->showMessage("diff...");
 
-	auto difftree = fsdiff::compare(aPaths[0], aPaths[1]);
+	//auto path0 = boost::filesystem::path("/home/martin/Dropbox/Programming/DirDiff/left/");
+	//auto path1 = boost::filesystem::path("/home/martin/Dropbox/Programming/DirDiff/right/");
+	//auto difftree = fsdiff::compare(path0, path1, [](std::string aFileName){});
 	//difftree->createFileHashes();
+
+	auto difftree = aDiff;
+
 
 	m_model = new TreeModel(this, difftree);
 

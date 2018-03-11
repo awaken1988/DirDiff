@@ -76,9 +76,9 @@ namespace fsdiff
 
 
 
-	shared_ptr<diff_t> list_dir_rekursive(path aAbsoluteBase);
+	shared_ptr<diff_t> list_dir_rekursive(path aAbsoluteBase, std::function<void(string)> aFunction);
 
-	shared_ptr<diff_t> compare(path aAbsoluteLeft, path aAbsoluteRight);
+	shared_ptr<diff_t> compare(path aAbsoluteLeft, path aAbsoluteRight, std::function<void(string)> aFunction);
 
 	int64_t diff_size(diff_t& aTree);
 

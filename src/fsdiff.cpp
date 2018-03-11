@@ -160,7 +160,10 @@ namespace fsdiff
 	}
 
 	int next_debug_id = 1000000;
-	static shared_ptr<diff_t> impl_list_dir_rekursive(path aAbsoluteBase, path aOwnPath, diff_t* aParent)
+	static shared_ptr<diff_t> impl_list_dir_rekursive(	path aAbsoluteBase,
+														path aOwnPath,
+														diff_t* aParent,
+														std::function<void(string)> aFunction)
 	{
 		shared_ptr<diff_t> ret = make_shared<diff_t>();
 
@@ -169,6 +172,8 @@ namespace fsdiff
 		ret->cause = cause_t::SAME;
 		ret->parent = aParent;
 		ret->debug_id = ++next_debug_id;
+
+		aFunction(aOwnPath.c_str());
 
 		if( !is_directory( ret->fullpath[diff_t::LEFT] ) )
 			return ret;
@@ -180,16 +185,16 @@ namespace fsdiff
 			if( !impl_check_access(iEntry.path() ) )
 				continue;
 
-			ret->childs.push_back( impl_list_dir_rekursive(aAbsoluteBase, iEntry.path(), ret.get()) );
+			ret->childs.push_back( impl_list_dir_rekursive(aAbsoluteBase, iEntry.path(), ret.get(), aFunction) );
 		}
 
 
 		return ret;
 	}
 
-	shared_ptr<diff_t> list_dir_rekursive(path aAbsoluteBase)
+	shared_ptr<diff_t> list_dir_rekursive(path aAbsoluteBase, std::function<void(string)> aFunction)
 	{
-		return impl_list_dir_rekursive(aAbsoluteBase, aAbsoluteBase, nullptr);
+		return impl_list_dir_rekursive(aAbsoluteBase, aAbsoluteBase, nullptr, aFunction);
 	}
 
 
@@ -222,8 +227,13 @@ namespace fsdiff
 		}
 	}
 
-	static void impl_compare(shared_ptr<diff_t>& aLeft, shared_ptr<diff_t>& aRight)
+	static void impl_compare(shared_ptr<diff_t>& aLeft, shared_ptr<diff_t>& aRight, std::function<void(string)> aFunction)
 	{
+		aFunction( std::string("compare ")
+					+ aLeft->getLastName(diff_t::LEFT).c_str()
+					+ std::string(" --- ")
+					+ aRight->getLastName(diff_t::LEFT).c_str() );
+
 		for(auto& iChild: aLeft->childs) {
 			auto right_iter =  find_if(aRight->childs.begin(), aRight->childs.end(), [&iChild](shared_ptr<diff_t>& aDiff) {
 				return aDiff->getLastName() == iChild->getLastName();
@@ -263,7 +273,7 @@ namespace fsdiff
 			impl_copy_diff(iChild, *right_iter);
 
 			if( isDirLeft ) {
-				impl_compare(iChild, *right_iter);
+				impl_compare(iChild, *right_iter, aFunction);
 			}
 		}
 
@@ -282,12 +292,12 @@ namespace fsdiff
 
 	}
 
-	shared_ptr<diff_t> compare(path aAbsoluteLeft, path aAbsoluteRight)
+	shared_ptr<diff_t> compare(path aAbsoluteLeft, path aAbsoluteRight, std::function<void(string)> aFunction)
 	{
-		shared_ptr<diff_t> left = impl_list_dir_rekursive(aAbsoluteLeft, aAbsoluteLeft, nullptr);
-		shared_ptr<diff_t> right = impl_list_dir_rekursive(aAbsoluteRight, aAbsoluteRight, nullptr);
+		shared_ptr<diff_t> left = impl_list_dir_rekursive(aAbsoluteLeft, aAbsoluteLeft, nullptr, aFunction);
+		shared_ptr<diff_t> right = impl_list_dir_rekursive(aAbsoluteRight, aAbsoluteRight, nullptr, aFunction);
 
-		impl_compare(left, right);
+		impl_compare(left, right, aFunction);
 
 		return left;
 	}
