@@ -60,7 +60,7 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
         const diff_t::idx_t idx_side = is_added ? diff_t::RIGHT : diff_t::LEFT;
 
         if( index.column() == static_cast<int>(column_e::ITEM_NAME) ) {
-            return QString( item->getLastName(idx_side).c_str() );
+            return QString( item->getLastName(idx_side).string().c_str() );
         }
         else if(  index.column() == static_cast<int>(column_e::ITEM_CAUSE)  ) {
 			return fsdiff::cause_t_str( item->cause ).c_str();

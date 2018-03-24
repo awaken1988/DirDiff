@@ -298,7 +298,7 @@ namespace detailgui
 
 			lbl->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-			QPixmap pxmp( aFilePath.c_str() );
+			QPixmap pxmp( aFilePath.string().c_str() );
 			pxmp =pxmp.scaledToHeight(lbl->height()/2, Qt::FastTransformation );
 
 			lbl->setPixmap(pxmp);

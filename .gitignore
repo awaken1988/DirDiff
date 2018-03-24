@@ -32,3 +32,15 @@ build/
 *.exe
 *.out
 *.app
+
+#vs2017
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+Generated\ Files/
+GeneratedFiles/
+/vs2017_project/x64
+

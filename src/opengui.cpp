@@ -94,10 +94,7 @@ OpenGui::OpenGui(QWidget *parent)
 
 			worker->moveToThread(thread);
 			connect(this, &OpenGui::operateFilehash, worker, &FileLoadWalker::hashAllFiles);
-			connect(worker, &FileLoadWalker::resultReady, [this](shared_ptr<fsdiff::diff_t> aDiff){
-				m_diff = aDiff;
-				emit accept();
-			});
+			connect(worker, &FileLoadWalker::resultReady, this, &OpenGui::recListFilesReady, Qt::BlockingQueuedConnection);
 			connect(worker, &FileLoadWalker::stepReady, this, &OpenGui::stepLoad, Qt::BlockingQueuedConnection );
 
 			connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
@@ -126,6 +123,12 @@ OpenGui::OpenGui(QWidget *parent)
 	mainLayout->addWidget(m_load_progress, mainLayout->rowCount(), 0, 1, 3);
 	mainLayout->addWidget(m_status, mainLayout->rowCount(), 0, 1, 3);
 	setLayout(mainLayout);
+}
+
+void OpenGui::recListFilesReady(shared_ptr<fsdiff::diff_t> aDiff)
+{
+	m_diff = aDiff;
+	emit accept();
 }
 
 OpenGui::~OpenGui()

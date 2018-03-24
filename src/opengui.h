@@ -40,6 +40,7 @@ signals:
 
 public slots:
 	void stepLoad(std::string aFileName);
+	void recListFilesReady(shared_ptr<fsdiff::diff_t> aDiff);
 };
 
 class FileLoadWalker : public QObject

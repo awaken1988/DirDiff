@@ -18,6 +18,7 @@
 #include <functional>
 #include <vector>
 #include <mutex>
+#include <array>
 #include <boost/filesystem.hpp>
 #include "boost/format.hpp"
 

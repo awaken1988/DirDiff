@@ -11,6 +11,7 @@
 #include <array>
 #include <cmath>
 #include <boost/format.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <QFile>
 #include <QCryptographicHash>
 
@@ -90,7 +91,7 @@ namespace fsdiff
 		foreach_diff_item(*this, [this,&filesize_hashed,filesize_sum, aStep](diff_t& aTree) {
 			for(int iSide=0; iSide<2; iSide++) {
 				if( is_regular_file(aTree.fullpath[iSide]) ) {
-					QFile hashFile(aTree.fullpath[iSide].c_str());
+					QFile hashFile( (aTree.fullpath[iSide]).string().c_str() ) ;
 					if( !hashFile.open(QIODevice::ReadOnly) )
 						continue;
 
@@ -134,11 +135,13 @@ namespace fsdiff
 
 	static bool impl_check_access(const path& aPath)
 	{
+		using namespace boost::filesystem;
+
 		try {
 			if( is_regular_file(aPath) ) {
 				//check if we have access permissions to read
 				file_status result = status(aPath);
-				if( !(result.permissions() & (S_IRUSR|S_IRGRP|S_IROTH)) )
+				if( !(result.permissions() & (owner_read|group_read|others_read)) )
 					return false;
 
 				file_size(aPath);
@@ -173,7 +176,7 @@ namespace fsdiff
 		ret->parent = aParent;
 		ret->debug_id = ++next_debug_id;
 
-		aFunction(aOwnPath.c_str());
+		aFunction(aOwnPath.string().c_str());
 
 		if( !is_directory( ret->fullpath[diff_t::LEFT] ) )
 			return ret;
@@ -230,9 +233,9 @@ namespace fsdiff
 	static void impl_compare(shared_ptr<diff_t>& aLeft, shared_ptr<diff_t>& aRight, std::function<void(string)> aFunction)
 	{
 		aFunction( std::string("compare ")
-					+ aLeft->getLastName(diff_t::LEFT).c_str()
+					+ aLeft->getLastName(diff_t::LEFT).string().c_str()
 					+ std::string(" --- ")
-					+ aRight->getLastName(diff_t::LEFT).c_str() );
+					+ aRight->getLastName(diff_t::LEFT).string().c_str() );
 
 		for(auto& iChild: aLeft->childs) {
 			auto right_iter =  find_if(aRight->childs.begin(), aRight->childs.end(), [&iChild](shared_ptr<diff_t>& aDiff) {
