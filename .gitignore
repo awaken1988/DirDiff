@@ -43,4 +43,4 @@ build/
 Generated\ Files/
 GeneratedFiles/
 /vs2017_project/x64
-
+/vs2017_project/*.aps

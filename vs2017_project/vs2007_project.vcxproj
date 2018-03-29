@@ -25,12 +25,19 @@
     <ClInclude Include="..\src\fsdiff.h" />
     <ClInclude Include="..\src\maingui.h" />
     <ClInclude Include="..\src\sortfilterproxy.h" />
+    <ClInclude Include="resource.h" />
     <QtMoc Include="..\src\treemodel.h" />
     <QtMoc Include="..\src\opengui.h" />
     <QtMoc Include="..\src\duplicatemodel.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="main.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\logo.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>

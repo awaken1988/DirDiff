@@ -63,6 +63,9 @@
     <ClInclude Include="..\src\sortfilterproxy.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="..\src\duplicatemodel.h">
@@ -79,5 +82,11 @@
     <None Include="..\src\Makefile">
       <Filter>src</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="main.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\logo.ico" />
   </ItemGroup>
 </Project>
