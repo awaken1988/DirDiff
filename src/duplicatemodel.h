@@ -19,9 +19,21 @@ class DuplicateModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
+	using duplicate_t = std::vector<std::vector<fsdiff::diff_t*> >;
+
+	//! search all duplicates of a side
+	static duplicate_t create_summary(	fsdiff::diff_t* aDiffTree,
+										fsdiff::diff_t::idx_t aSide);
+
+	//! search all duplicates for diff a specific diff item
+	static duplicate_t create_onefile(	fsdiff::diff_t* aDiff,
+										fsdiff::diff_t::idx_t aSide);
+
 	using diff_sptr = std::shared_ptr<fsdiff::diff_t>;
 
-	DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> aDiffTree, fsdiff::diff_t::idx_t iSide);
+	DuplicateModel(	fsdiff::diff_t::idx_t iSide,
+					std::vector<std::vector<fsdiff::diff_t*>> aData);
+
     ~DuplicateModel();
 
     QVariant data(const QModelIndex &index, int role) const override;

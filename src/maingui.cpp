@@ -131,10 +131,13 @@ void MainGui::clicked_diffitem(const QModelIndex &index)
 
 	//detail tab: filename, path, mime
 	m_detail_tab->addTab(detailgui::show_detail(diff), "Details");
-	QObject::connect(m_detail_tab, &QTabWidget::tabBarClicked, tab_changed_fun);
 
 	//content
-	const int content_tab_idx = m_detail_tab->addTab(detailgui::show_content(diff), "Content");
+	m_detail_tab->addTab(detailgui::show_content(diff), "Content");
+
+	//show duplicates
+	m_detail_tab->addTab(detailgui::show_duplicates(diff), "Duplicates");
+
 	QObject::connect(m_detail_tab, &QTabWidget::tabBarClicked, tab_changed_fun);
 
 	//restore las tab
@@ -160,7 +163,9 @@ QPushButton* MainGui::createFileHashBtn()
 				auto duplicateLayout = new QGridLayout();
 				duplicateWidget->setLayout(duplicateLayout);
 
-				auto duplicateModel = new DuplicateModel(nullptr, m_model->rootItem, fsdiff::diff_t::LEFT);
+				auto duplicateModel = new DuplicateModel(fsdiff::diff_t::LEFT,
+						DuplicateModel::create_summary(m_model->rootItem.get(), fsdiff::diff_t::LEFT));
+
 				auto duplicateTree = new QTreeView();
 				duplicateTree->setModel(duplicateModel);
 

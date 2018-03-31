@@ -5,6 +5,9 @@
  *      Author: martin
  */
 
+#include <type_traits>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/exception.hpp>
 #include <QGridLayout>
 #include <QLabel>
 #include <QMimeDatabase>
@@ -17,11 +20,11 @@
 #include <QUrl>
 #include <QClipboard>
 #include <QApplication>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/exception.hpp>
 #include <QScrollBar>
-#include <type_traits>
+#include <QTreeView>
+#include <QLabel>
 #include "detailgui.h"
+#include "duplicatemodel.h"
 
 
 
@@ -371,6 +374,34 @@ namespace detailgui
 
 		 impl_after_content(loaded_widgets);
 
+
+		return mainWidget;
+	}
+
+	QWidget* show_duplicates(fsdiff::diff_t* aDiff)
+	{
+		QWidget* mainWidget = new QWidget;
+		QGridLayout * gridLayout = new QGridLayout;
+		mainWidget->setLayout(gridLayout);
+
+		if( nullptr == aDiff->file_hashes) {
+			QLabel* lblHint = new QLabel("press \"Compare Files\" to find duplicates");
+			gridLayout->addWidget(lblHint, 0, 0);
+			return mainWidget;
+		}
+
+		for(int iSide=0; iSide<SIDES; iSide++) {
+			auto iSideEnum = static_cast<fsdiff::diff_t::idx_t>(iSide);
+			QTreeView* dup_view = new QTreeView();
+
+			if( is_regular_file(aDiff->fullpath[iSide]) ) {
+				DuplicateModel* dup_model = new DuplicateModel(iSideEnum, DuplicateModel::create_onefile(aDiff, iSideEnum));
+				dup_view->setModel(dup_model);
+				dup_view->expandAll();
+			}
+
+			gridLayout->addWidget(dup_view, 0, iSide);
+		}
 
 		return mainWidget;
 	}

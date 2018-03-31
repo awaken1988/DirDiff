@@ -3,15 +3,13 @@
 #include <QStringList>
 #include <QBrush>
 
-
-
-DuplicateModel::DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> aDiffTree, fsdiff::diff_t::idx_t aSide)
-    : QAbstractItemModel(parent), m_side(aSide)
+DuplicateModel::duplicate_t DuplicateModel::create_summary(	fsdiff::diff_t* aDiffTree,
+															fsdiff::diff_t::idx_t aSide)
 {
-
 	set<vector<unsigned char>> hashes_used;
+	std::vector<std::vector<fsdiff::diff_t*> > duplicate_items;
 
-	fsdiff::foreach_diff_item(*aDiffTree, [aSide, this, &hashes_used](fsdiff::diff_t& aTree) {
+	fsdiff::foreach_diff_item(*aDiffTree, [aSide, &hashes_used, &duplicate_items](fsdiff::diff_t& aTree) {
 
 		if( !is_regular_file(aTree.fullpath[aSide]) )
 			return;
@@ -43,18 +41,40 @@ DuplicateModel::DuplicateModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> 
 		}
 
 		if( result.size() > 1 ) {
-			m_duplicate_items.push_back(result);
+			duplicate_items.push_back(result);
 		}
 
 		hashes_used.insert(hash);
 	});
 
-	for(const auto& iArr: m_duplicate_items) {
+	for(const auto& iArr: duplicate_items) {
 		std::cout<<"bla"<<std::endl;
 		for(const auto& iElement: iArr) {
 			std::cout<<iElement->fullpath[aSide].c_str()<<std::endl;
 		}
 	}
+
+	return duplicate_items;
+}
+
+//! search all duplicates for diff a specific diff item
+DuplicateModel::duplicate_t DuplicateModel::create_onefile(	fsdiff::diff_t* aDiff,
+															fsdiff::diff_t::idx_t aSide)
+{
+	const auto hash_value = aDiff->file_hashes->path_hash[aDiff->fullpath[aSide]];
+	std::vector<fsdiff::diff_t*> items;
+
+	for(const auto& iPath: aDiff->file_hashes->hash_path[hash_value]) {
+		auto curr_item = aDiff->file_hashes->path_diff[iPath];
+		items.push_back( curr_item );
+	}
+
+	return std::vector<std::vector<fsdiff::diff_t*> >{items};
+}
+
+DuplicateModel::DuplicateModel(fsdiff::diff_t::idx_t aSide, std::vector<std::vector<fsdiff::diff_t*>> aData)
+    : QAbstractItemModel(nullptr), m_side(aSide), m_duplicate_items(aData)
+{
 
 }
 
