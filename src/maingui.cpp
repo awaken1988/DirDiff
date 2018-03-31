@@ -22,6 +22,7 @@
 #include <QApplication>
 #include <QStatusBar>
 #include <QAction>
+#include <QComboBox>
 
 MainGui::MainGui(  )
 {
@@ -75,7 +76,7 @@ void MainGui::startDiff(shared_ptr<fsdiff::diff_t> aDiff)
 	m_layout->addWidget(m_detail_tab, m_layout->rowCount(), 0, 1, 2);
 	init_left_right_info();
 
-	//Progres bar
+	//Progress bar
 	{
 		m_progress_list = new QVBoxLayout();
 		m_layout->addLayout(m_progress_list, m_layout->rowCount(), 0, 1, 2);
@@ -200,8 +201,13 @@ QPushButton* MainGui::createFileHashBtn()
 							if( diffPtr->fullpath[0] == result.toStdString() ) {
 								std::cout<<"found: "<<diffPtr->fullpath[0].c_str()<<std::endl;
 
+								QModelIndex map_src = m_filter->mapFromSource( aModelIndex );
+								m_tree_view->expandAll(); // workaround for scrollTo
+								m_tree_view->selectionModel()->select(map_src, QItemSelectionModel::ClearAndSelect);
+								m_tree_view->scrollTo(map_src, QAbstractItemView::PositionAtCenter);
+
 								//m_tree_view->selectionModel()->select(aModelIndex, QItemSelectionModel::ClearAndSelect);
-								m_tree_view->scrollTo(aModelIndex, QAbstractItemView::PositionAtCenter);
+								//m_tree_view->scrollTo(aModelIndex, QAbstractItemView::PositionAtCenter);
 							}
 						});
 
@@ -249,6 +255,24 @@ QWidget* MainGui::createFilterBtns()
 	}
 
 	filter_layout->addStretch(1);
+
+	//Size units
+	{
+		auto* size_unit_vbox = new QVBoxLayout();
+		auto* size_unit_widget = new QWidget();
+		auto* cmbo_box = new QComboBox();
+		size_unit_widget->setLayout(size_unit_vbox);
+
+		size_unit_vbox->addWidget(new QLabel("Size Unit: "));
+		size_unit_vbox->addWidget(cmbo_box);
+
+		for(auto iUnit: fsdiff::pretty_print_styles) {
+			cmbo_box->addItem(iUnit.c_str());
+		}
+
+
+		filter_layout->addWidget( size_unit_widget );
+	}
 
 	//Create File Hashes
 	{

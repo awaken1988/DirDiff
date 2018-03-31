@@ -83,6 +83,12 @@ namespace fsdiff
 
 	int64_t diff_size(diff_t& aTree);
 
+	static string pretty_print_styles[] = {
+		"auto",
+		"KiB",
+		"MiB",
+		"GiB",
+	};
 	string pretty_print_size(int64_t aSize);
 
 	void dump(shared_ptr<diff_t> & aTree, int aDepth=0);

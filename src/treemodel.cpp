@@ -7,7 +7,6 @@ enum class column_e {
     ITEM_NAME=0,
     ITEM_CAUSE,
     DIFF_SIZE,
-	HASH,
     LEN,
 };
 
@@ -18,7 +17,6 @@ static QString column_e_str(column_e aColumn)
 	case column_e::ITEM_NAME:		return "Filename";
 	case column_e::ITEM_CAUSE:	return "Cause";
 	case column_e::DIFF_SIZE:		return "Size Difference";
-	case column_e::HASH:			return "Hashvalue";
 	case column_e::LEN:			return "Length";
 	}
 
