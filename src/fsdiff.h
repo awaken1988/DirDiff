@@ -75,11 +75,22 @@ namespace fsdiff
 		int debug_id;
 	};
 
+	struct filter_item_t
+	{
+		std::string regex;
+		bool		exclude;	//true=(filter out items match the regex);	false=(display items matches regex)
 
+		static bool is_included(const std::vector<filter_item_t>& aFilter, const std::string& aText);
+	};
 
-	shared_ptr<diff_t> list_dir_rekursive(path aAbsoluteBase, std::function<void(string)> aFunction);
+	shared_ptr<diff_t> list_dir_rekursive(	path aAbsoluteBase,
+											std::function<void(string)> aFunction,
+											const std::vector<filter_item_t>& aFilter);
 
-	shared_ptr<diff_t> compare(path aAbsoluteLeft, path aAbsoluteRight, std::function<void(string)> aFunction);
+	shared_ptr<diff_t> compare(	path aAbsoluteLeft,
+								path aAbsoluteRight,
+								std::function<void(string)> aFunction,
+								const std::vector<filter_item_t>& aFilter);
 
 	int64_t diff_size(diff_t& aTree);
 

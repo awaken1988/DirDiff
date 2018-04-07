@@ -89,7 +89,7 @@ OpenGui::OpenGui(QWidget *parent)
 		//start thread
 		{
 			QThread* thread = new QThread;
-			FileLoadWalker* worker = new FileLoadWalker(m_paths_str);
+			FileLoadWalker* worker = new FileLoadWalker(m_paths_str, m_filter->getModel().getExpressions());
 
 			worker->moveToThread(thread);
 			connect(this, &OpenGui::operateFilehash, worker, &FileLoadWalker::hashAllFiles);
@@ -131,6 +131,11 @@ void OpenGui::init_filter()
 	m_filter = new Filter();
 
 	m_main_layout->addWidget(m_filter, m_main_layout->rowCount(), 0, 1, 3);
+
+	//some predefined filter
+	//later we could move this to a config file
+	m_filter->addExpression(".git", true);
+	m_filter->addExpression(".svn", true);
 }
 
 void OpenGui::recListFilesReady(shared_ptr<fsdiff::diff_t> aDiff)
@@ -149,8 +154,8 @@ void OpenGui::stepLoad(std::string aFileName)
 	m_status->setText(QString("%1").arg(aFileName.c_str()));
 }
 
-FileLoadWalker::FileLoadWalker(std::vector<boost::filesystem::path> aPaths)
-	: m_paths(aPaths)
+FileLoadWalker::FileLoadWalker(std::vector<boost::filesystem::path> aPaths, std::vector<fsdiff::filter_item_t> aFilter)
+	: m_paths(aPaths), m_filter(aFilter)
 {
 
 }
@@ -164,7 +169,7 @@ void FileLoadWalker::hashAllFiles()
 {
 	auto difftree = fsdiff::compare(m_paths[0], m_paths[1], [this](std::string aFileName){
 		emit stepReady(aFileName);
-	});
+	}, m_filter);
 
 	emit resultReady(difftree);
 }

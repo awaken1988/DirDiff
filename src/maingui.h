@@ -24,6 +24,7 @@
 #include "sortfilterproxy.h"
 #include <boost/filesystem.hpp>
 #include "opengui.h"
+#include "filter.h"
 
 
 
@@ -39,6 +40,7 @@ public slots:
 
 protected:
 	void init_left_right_info();
+	void init_file_filter();
 
 	QWidget* startDiffHashes();
 	QWidget* startDiffDuplicates();
@@ -50,7 +52,7 @@ protected:
 	std::array<QGroupBox*, 2> m_cmp_detail;
 	QTreeView* m_tree_view;
 	TreeModel* m_model;
-	SortFilterProxy* m_filter;
+	SortFilterProxy* m_filter_proxy;
 	QGridLayout* m_layout;
 	QTabWidget* m_detail_tab;
 	int m_detail_tab_idx=0;
@@ -58,6 +60,8 @@ protected:
 	QVBoxLayout* m_progress_list;
 
 	QTabWidget* m_main_tab;
+
+	Filter* m_filter;
 
 	const bool m_with_filter = true;
 

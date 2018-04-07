@@ -48,7 +48,9 @@ namespace fsdiff
 			cause_t::ADDED,
 			cause_t::DELETED,
 			cause_t::FILE_TO_DIR,
-			cause_t::DIR_TO_FILE, };
+			cause_t::DIR_TO_FILE,
+			cause_t::CONTENT,
+		};
 
 		return values;
 	}
@@ -133,6 +135,25 @@ namespace fsdiff
 		});
 	}
 
+	bool filter_item_t::is_included(const std::vector<filter_item_t>& aFilter, const std::string& aText)
+	{
+		int allow_count = 0;
+
+		for(auto iFilter: aFilter) {
+			allow_count += iFilter.exclude ? 0 : 1;
+			if( -1 != QRegExp(iFilter.regex.c_str()).indexIn(QString(aText.c_str())) ) {
+
+				if( iFilter.exclude ) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+		}
+
+		return !(allow_count > 0);
+	}
+
 	static bool impl_check_access(const path& aPath)
 	{
 		using namespace boost::filesystem;
@@ -166,7 +187,8 @@ namespace fsdiff
 	static shared_ptr<diff_t> impl_list_dir_rekursive(	path aAbsoluteBase,
 														path aOwnPath,
 														diff_t* aParent,
-														std::function<void(string)> aFunction)
+														std::function<void(string)> aFunction,
+														const std::vector<filter_item_t>& aFilter)
 	{
 		shared_ptr<diff_t> ret = make_shared<diff_t>();
 
@@ -188,16 +210,22 @@ namespace fsdiff
 			if( !impl_check_access(iEntry.path() ) )
 				continue;
 
-			ret->childs.push_back( impl_list_dir_rekursive(aAbsoluteBase, iEntry.path(), ret.get(), aFunction) );
+			//filter
+			if( !filter_item_t::is_included(aFilter, iEntry.path().c_str()) )
+				continue;
+
+			ret->childs.push_back( impl_list_dir_rekursive(aAbsoluteBase, iEntry.path(), ret.get(), aFunction, aFilter) );
 		}
 
 
 		return ret;
 	}
 
-	shared_ptr<diff_t> list_dir_rekursive(path aAbsoluteBase, std::function<void(string)> aFunction)
+	shared_ptr<diff_t> list_dir_rekursive(	path aAbsoluteBase,
+											std::function<void(string)> aFunction,
+											const std::vector<filter_item_t>& aFilter)
 	{
-		return impl_list_dir_rekursive(aAbsoluteBase, aAbsoluteBase, nullptr, aFunction);
+		return impl_list_dir_rekursive(aAbsoluteBase, aAbsoluteBase, nullptr, aFunction, aFilter);
 	}
 
 
@@ -295,10 +323,13 @@ namespace fsdiff
 
 	}
 
-	shared_ptr<diff_t> compare(path aAbsoluteLeft, path aAbsoluteRight, std::function<void(string)> aFunction)
+	shared_ptr<diff_t> compare(	path aAbsoluteLeft,
+								path aAbsoluteRight,
+								std::function<void(string)> aFunction,
+								const std::vector<filter_item_t>& aFilter)
 	{
-		shared_ptr<diff_t> left = impl_list_dir_rekursive(aAbsoluteLeft, aAbsoluteLeft, nullptr, aFunction);
-		shared_ptr<diff_t> right = impl_list_dir_rekursive(aAbsoluteRight, aAbsoluteRight, nullptr, aFunction);
+		shared_ptr<diff_t> left = impl_list_dir_rekursive(aAbsoluteLeft, aAbsoluteLeft, nullptr, aFunction, aFilter);
+		shared_ptr<diff_t> right = impl_list_dir_rekursive(aAbsoluteRight, aAbsoluteRight, nullptr, aFunction, aFilter);
 
 		impl_compare(left, right, aFunction);
 
@@ -324,7 +355,7 @@ namespace fsdiff
 
 		vector<string> sizes = {"bytes", "KiB", "MiB", "GiB"};
 
-		int log = static_cast<int>( log2(abs(aSize)) / log2(1024) );
+		size_t log = static_cast<size_t>( log2(abs(aSize)) / log2(1024) );
 		const string byte_output = (boost::format("%1% %2%") % aSize % sizes[0]).str();
 
 		if( log < 1) {

@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QShortcut>
 #include <vector>
+#include "fsdiff.h"
 
 class FilterModel;
 
@@ -19,6 +20,10 @@ public:
 	Filter(QWidget* parent = nullptr);
 	virtual ~Filter();
 
+	void addExpression(QString aExpression, bool aExclude);
+
+	FilterModel& getModel();
+
 protected:
 	QLineEdit* m_search_input;
 	QTableView* m_table;
@@ -29,7 +34,6 @@ protected:
 
 	QShortcut* m_shortcut;
 
-	void addExpression(QString aExpression, bool aExclude);
 
 };
 
@@ -37,20 +41,18 @@ class FilterModel : public QAbstractTableModel
 {
 	Q_OBJECT
 public:
-	struct filter_item_t
-	{
-		QString regex;
-		bool	exclude;	//true=(filter out items match the regex);	false=(display items matches regex)
-	};
 
 protected:
-	std::vector<filter_item_t> m_expressions;
+	std::vector<fsdiff::filter_item_t> m_expressions;
+
+signals:
+	void changed_filter();
 
 public:
 	FilterModel();
 	virtual ~FilterModel();
 
-
+	const decltype(m_expressions)& getExpressions();
 
 	int rowCount(const QModelIndex & parent = QModelIndex()) const;
 	int columnCount(const QModelIndex & parent = QModelIndex()) const;
@@ -59,7 +61,7 @@ public:
 	Qt::ItemFlags flags(const QModelIndex & index) const;
 	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
-	void appendData(const filter_item_t& aData);
+	void appendData(const fsdiff::filter_item_t& aData);
 	void deleteData(int aStartRow, int aEndRow);
 
 	//TODO: move implementation to cpp file

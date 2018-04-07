@@ -23,9 +23,13 @@ public:
 
 	void set_cause_filter(fsdiff::cause_t aCause, bool aEnabled);
 
+	void setExpressions(std::vector<fsdiff::filter_item_t> aExpressions);
+
 protected:
 	std::set<fsdiff::cause_t> m_items_show;
 	mutable std::map<fsdiff::diff_t*, std::set<fsdiff::cause_t> > m_cause_cache;
+
+	std::vector<fsdiff::filter_item_t> m_expressions;
 };
 
 #endif /* SORTFILTERPROXY_H_ */

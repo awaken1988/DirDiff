@@ -24,7 +24,7 @@ bool SortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceP
 {
 	using namespace std;
 	using namespace fsdiff;
-	bool ret = false;
+	bool ret_diff = false;
 
 	QModelIndex index0 = sourceModel()->index(sourceRow, 0, sourceParent);
 	diff_t* left_ptr = static_cast<diff_t*>(index0.internalPointer());
@@ -34,7 +34,7 @@ bool SortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceP
 
 
 	if( m_cause_cache.find(left_ptr) == m_cause_cache.end() ) {
-		fsdiff::foreach_diff_item(*left_ptr, [&ret,this,left_ptr](const diff_t& aTree) {
+		fsdiff::foreach_diff_item(*left_ptr, [this,left_ptr](const diff_t& aTree) {
 			m_cause_cache[left_ptr].insert(aTree.cause);
 		});
 	}
@@ -44,14 +44,14 @@ bool SortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceP
 		auto& curr = m_cause_cache[left_ptr];
 
 		if( curr.find(iCause) != curr.end() ) {
-			return true;
+			ret_diff = true;
+			break;
 		}
 	}
 
-
-
-
-	return ret;
+	return ret_diff
+			&& fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[0].c_str())
+			&& fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[1].c_str());
 }
 
 bool SortFilterProxy::lessThan(const QModelIndex &left, const QModelIndex &right) const
@@ -72,6 +72,13 @@ void SortFilterProxy::set_cause_filter(fsdiff::cause_t aCause, bool aEnabled)
 	else
 		m_items_show.erase(aCause);
 
+	this->invalidateFilter();
+}
+
+void SortFilterProxy::setExpressions(std::vector<fsdiff::filter_item_t> aExpressions)
+{
+	std::cout<<"setExpression"<<std::endl;
+	m_expressions = aExpressions;
 	this->invalidateFilter();
 }
 

@@ -23,6 +23,8 @@
 #include <QStatusBar>
 #include <QAction>
 #include <QComboBox>
+#include <QFrame>
+#include <QGroupBox>
 
 MainGui::MainGui(  )
 {
@@ -47,10 +49,11 @@ void MainGui::startDiff(shared_ptr<fsdiff::diff_t> aDiff)
 
 
 	m_model = new TreeModel(this, difftree);
+	m_filter = new Filter();
 
 	if( m_with_filter ) {
-		m_filter = new SortFilterProxy(this);		//TODO: who is destroying this object
-		m_filter->setSourceModel(m_model);
+		m_filter_proxy = new SortFilterProxy(this);		//TODO: who is destroying this object
+		m_filter_proxy->setSourceModel(m_model);
 	}
 
 	m_layout = new QGridLayout;
@@ -59,16 +62,32 @@ void MainGui::startDiff(shared_ptr<fsdiff::diff_t> aDiff)
 	m_layout->addWidget(createFilterBtns(), m_layout->rowCount(), 0, 1, 2);
 
 
-	//tree
+	//tree + filter
 	{
+		auto* curr_lyt = new QHBoxLayout();
+
 		m_tree_view = new QTreeView(this);
-		m_tree_view->setModel( m_with_filter ? static_cast<QAbstractItemModel*>(m_filter) : static_cast<QAbstractItemModel*>(m_model));
-		m_layout->addWidget(m_tree_view, m_layout->rowCount(), 0, 1, 2);
+		m_tree_view->setModel( m_with_filter ? static_cast<QAbstractItemModel*>(m_filter_proxy) : static_cast<QAbstractItemModel*>(m_model));
+
 
 		QObject::connect(m_tree_view, &QTreeView::clicked, this, &MainGui::clicked_diffitem);
 
 		m_tree_view->setColumnWidth(0, 300);
 		m_tree_view->setAutoExpandDelay(0);
+
+		//filter
+		auto filter_group = new QGroupBox("Filter/Regex");
+		{
+			init_file_filter();
+			auto filter_lyt = new QHBoxLayout;
+			filter_group->setLayout(filter_lyt);
+
+			filter_lyt->addWidget(m_filter);
+		}
+
+		curr_lyt->addWidget(m_tree_view, 2);
+		curr_lyt->addWidget(filter_group, 1);
+		m_layout->addLayout(curr_lyt, m_layout->rowCount(), 0, 1, 2);
 	}
 
 	//left right box
@@ -109,7 +128,7 @@ void MainGui::clicked_diffitem(const QModelIndex &index)
 
 	QModelIndex sourceIndex = index;
 	if( m_with_filter ) {
-		sourceIndex = m_filter->mapToSource(index);
+		sourceIndex = m_filter_proxy->mapToSource(index);
 	}
 
 	if( !sourceIndex.isValid() )
@@ -201,7 +220,7 @@ QPushButton* MainGui::createFileHashBtn()
 							if( diffPtr->fullpath[0] == result.toStdString() ) {
 								std::cout<<"found: "<<diffPtr->fullpath[0].c_str()<<std::endl;
 
-								QModelIndex map_src = m_filter->mapFromSource( aModelIndex );
+								QModelIndex map_src = m_filter_proxy->mapFromSource( aModelIndex );
 								m_tree_view->expandAll(); // workaround for scrollTo
 								m_tree_view->selectionModel()->select(map_src, QItemSelectionModel::ClearAndSelect);
 								m_tree_view->scrollTo(map_src, QAbstractItemView::PositionAtCenter);
@@ -249,7 +268,7 @@ QWidget* MainGui::createFilterBtns()
 		filter_layout->addWidget(chBx);
 
 		QObject::connect(chBx, &QCheckBox::stateChanged, [iCause, this](int aState) {
-			m_filter->set_cause_filter(iCause, static_cast<bool>(aState));
+			m_filter_proxy->set_cause_filter(iCause, static_cast<bool>(aState));
 			cout<<"change filter: name="<<cause_t_str(iCause)<<"; state="<<aState<<endl;
 		});
 	}
@@ -302,9 +321,15 @@ QWidget* MainGui::createFilterBtns()
 
 void MainGui::init_left_right_info()
 {
-		m_detail_tab->clear();
+	m_detail_tab->clear();
 }
 
+void MainGui::init_file_filter()
+{
+	connect(&m_filter->getModel(), &FilterModel::changed_filter, [this]() ->void {
+		m_filter_proxy->setExpressions(m_filter->getModel().getExpressions());
+	});
+}
 
 
 

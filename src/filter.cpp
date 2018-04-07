@@ -13,7 +13,6 @@ enum class filter_col_e : int
 {
 	FILTER=0,
 	EXPRESSION=1,
-	DELETE=2,
 	COUNT,
 };
 
@@ -29,8 +28,8 @@ Filter::Filter(QWidget* parent)
 	{
 		auto* lbl = new QLabel("Filter:");
 		m_search_input = new QLineEdit();
-		m_btn_include = new QPushButton("Include Expression");
-		m_btn_exclude = new QPushButton("Exclude Expression");
+		m_btn_include = new QPushButton("Include");
+		m_btn_exclude = new QPushButton("Exclude");
 
 		//TODO: merge these two functions
 		connect(m_btn_include, &QPushButton::clicked, [this](bool aChecked) -> void {
@@ -83,9 +82,14 @@ Filter::~Filter()
 
 }
 
+FilterModel& Filter::getModel()
+{
+	return *m_model;
+}
+
 void Filter::addExpression(QString aExpression, bool aExclude)
 {
-	FilterModel::filter_item_t item = {aExpression, aExclude};
+	fsdiff::filter_item_t item = {aExpression.toStdString(), aExclude};
 
 	for(auto iData: *m_model ) {
 		if( item.regex == iData.regex && item.exclude == iData.exclude )
@@ -111,6 +115,11 @@ FilterModel::~FilterModel()
 
 }
 
+const decltype(FilterModel::m_expressions)& FilterModel::getExpressions()
+{
+	return m_expressions;
+}
+
 int FilterModel::rowCount(const QModelIndex & parent) const
 {
 	return m_expressions.size();
@@ -131,16 +140,12 @@ QVariant FilterModel::data(const QModelIndex & index, int role) const
 			case (int)filter_col_e::FILTER:
 			{
 				if( m_expressions[index.row()].exclude  )
-					return QString("-");
-				return QString("+");
+					return QString("Exclude");
+				return QString("Include");
 			} break;
 			case (int)filter_col_e::EXPRESSION:
 			{
-				return m_expressions[index.row()].regex;
-			} break;
-			case (int)filter_col_e::DELETE:
-			{
-
+				return QString(m_expressions[index.row()].regex.c_str());
 			} break;
 			default: break;
 		}
@@ -169,23 +174,21 @@ QVariant FilterModel::headerData(int section, Qt::Orientation orientation, int r
 			{
 				return QString("regular expression");
 			} break;
-		case (int)filter_col_e::DELETE:
-			{
-				return QString("delete entry");
-			} break;
 		default: break;
 		}
 	}
 	return QVariant();
 }
 
-void FilterModel::appendData(const filter_item_t& aData)
+void FilterModel::appendData(const fsdiff::filter_item_t& aData)
 {
 	beginInsertRows(QModelIndex(), m_expressions.size(), m_expressions.size());
 	{
 		m_expressions.push_back(aData);
 	}
 	endInsertRows();
+
+	emit changed_filter();
 }
 
 void FilterModel::deleteData(int aStartRow, int aEndRow)
@@ -197,6 +200,8 @@ void FilterModel::deleteData(int aStartRow, int aEndRow)
 		}
 	}
 	endRemoveRows();
+
+	emit changed_filter();
 }
 
 Qt::ItemFlags FilterModel::flags(const QModelIndex & index) const

@@ -54,7 +54,7 @@ class FileLoadWalker : public QObject
 	Q_OBJECT
 
 public:
-	FileLoadWalker(std::vector<boost::filesystem::path> aPaths);
+	FileLoadWalker(std::vector<boost::filesystem::path> aPaths, std::vector<fsdiff::filter_item_t> aFilter);
 	virtual ~FileLoadWalker();
 public slots:
 	void hashAllFiles();
@@ -64,6 +64,7 @@ signals:
 
 private:
 	std::vector<boost::filesystem::path> m_paths;
+	std::vector<fsdiff::filter_item_t> m_filter;
 
 };
 
