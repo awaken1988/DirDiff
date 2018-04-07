@@ -12,11 +12,13 @@
 #include <QProgressBar>
 #include <QThread>
 #include <QLabel>
+#include <QGridLayout>
 #include <boost/filesystem.hpp>
 #include <vector>
 #include <string>
 #include <memory>
 #include "fsdiff.h"
+#include "filter.h"
 
 class QLineEdit;
 
@@ -33,6 +35,10 @@ protected:
 	QLineEdit* m_paths[2];
 	QProgressBar* m_load_progress;
 	QLabel* m_status;
+	Filter* m_filter;
+	QGridLayout* m_main_layout;
+
+	void init_filter();
 
 signals:
 	void cancelClicked();

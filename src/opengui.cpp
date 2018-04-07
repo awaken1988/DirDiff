@@ -9,7 +9,6 @@
 
 #include <QtGui>
 #include <QLineEdit>
-#include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QHBoxLayout>
@@ -37,7 +36,7 @@ OpenGui::OpenGui(QWidget *parent)
 	//progress label
 	m_status = new QLabel("...");
 
-	auto mainLayout = new QGridLayout;
+	m_main_layout = new QGridLayout;
 
 	for(int iSide=0; iSide<2; iSide++) {
 		auto text = 0 == iSide ? "Left: " : "Right: ";
@@ -64,9 +63,9 @@ OpenGui::OpenGui(QWidget *parent)
 			}
 		});
 
-		mainLayout->addWidget(lblChoose, iSide, 0);
-		mainLayout->addWidget(m_paths[iSide], iSide, 1);
-		mainLayout->addWidget(bntDialog, iSide, 2);
+		m_main_layout->addWidget(lblChoose, iSide, 0);
+		m_main_layout->addWidget(m_paths[iSide], iSide, 1);
+		m_main_layout->addWidget(bntDialog, iSide, 2);
 	}
 
 	auto btnLayout = new QHBoxLayout;
@@ -119,10 +118,19 @@ OpenGui::OpenGui(QWidget *parent)
 	btnLayout->addStretch(1);
 
 
-	mainLayout->addLayout(btnLayout, mainLayout->rowCount(), 0, 1, 3);
-	mainLayout->addWidget(m_load_progress, mainLayout->rowCount(), 0, 1, 3);
-	mainLayout->addWidget(m_status, mainLayout->rowCount(), 0, 1, 3);
-	setLayout(mainLayout);
+	m_main_layout->addLayout(btnLayout, m_main_layout->rowCount(), 0, 1, 3);
+	m_main_layout->addWidget(m_load_progress, m_main_layout->rowCount(), 0, 1, 3);
+	m_main_layout->addWidget(m_status, m_main_layout->rowCount(), 0, 1, 3);
+	setLayout(m_main_layout);
+
+	init_filter();
+}
+
+void OpenGui::init_filter()
+{
+	m_filter = new Filter();
+
+	m_main_layout->addWidget(m_filter, m_main_layout->rowCount(), 0, 1, 3);
 }
 
 void OpenGui::recListFilesReady(shared_ptr<fsdiff::diff_t> aDiff)

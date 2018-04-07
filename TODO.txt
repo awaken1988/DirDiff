@@ -1,0 +1,6 @@
+- code style
+	- rename enums _t to _e 
+- Filter (Dialog, Diff, Duplicates)
+- Duplicates (Left,Right)
+- CONTENT changed checkbox
+- Text diff widget (external)
