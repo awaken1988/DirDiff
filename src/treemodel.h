@@ -33,6 +33,8 @@ public:
 
 	void startFileHash( std::function<void()> aOnReady, std::function<void(int,int,int)> aStep  );
 
+	void setSizeUnit(QString aUnit);
+
 	void refresh();
 
 signals:
@@ -46,6 +48,7 @@ private:
 //TODO: make this private again
 public:
     shared_ptr<fsdiff::diff_t>  rootItem;
+    QString m_size_unit;
 
 };
 

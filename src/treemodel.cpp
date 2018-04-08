@@ -24,7 +24,7 @@ static QString column_e_str(column_e aColumn)
 }
 
 TreeModel::TreeModel(QObject *parent, std::shared_ptr<fsdiff::diff_t> aDiffTree)
-    : QAbstractItemModel(parent)
+    : QAbstractItemModel(parent), m_size_unit("auto")
 {
     rootItem = aDiffTree;
 }
@@ -65,7 +65,7 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
 		 }
         else if(  index.column() == static_cast<int>(column_e::DIFF_SIZE)  ) {
             auto sdiff = fsdiff::diff_size(*item);
-        	return QString("%1").arg( pretty_print_size(sdiff).c_str() );
+        	return QString("%1").arg( pretty_print_size(sdiff, m_size_unit.toStdString()).c_str() );
         }
         else {
             return QVariant();
@@ -86,8 +86,20 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     	default:					return QVariant();
     	}
     }
-
-
+    if (role == Qt::TextAlignmentRole ) {
+        if( index.column() == static_cast<int>(column_e::ITEM_NAME) ) {
+        	return Qt::AlignLeft;
+        }
+        else if(  index.column() == static_cast<int>(column_e::ITEM_CAUSE)  ) {
+        	return Qt::AlignLeft;
+		 }
+        else if(  index.column() == static_cast<int>(column_e::DIFF_SIZE)  ) {
+        	return Qt::AlignRight;
+        }
+        else {
+            return QVariant();
+        }
+    }
     return QVariant();
 }
 
@@ -213,6 +225,13 @@ void TreeModel::startFileHash( std::function<void()> aOnReady, std::function<voi
 
 	thread->start();
 	emit operateFilehash();
+}
+
+void TreeModel::setSizeUnit(QString aUnit)
+{
+	std::cout<<"TreeModel::setSizeUnit"<<std::endl;
+	m_size_unit = aUnit;
+	refresh();
 }
 
 void TreeModel::refresh()

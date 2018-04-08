@@ -349,25 +349,33 @@ namespace fsdiff
 		return static_cast<int64_t>(file_sizes[1])-static_cast<int64_t>(file_sizes[0]);
 	}
 
-	string pretty_print_size(int64_t aSize)
+	string pretty_print_size(int64_t aSize, std::string aPrintStyle)
 	{
 		bool isNeg = aSize < 0;
 
-		vector<string> sizes = {"bytes", "KiB", "MiB", "GiB"};
-
+		const int count = sizeof(pretty_print_styles) / sizeof(pretty_print_styles[0]);
 		size_t log = static_cast<size_t>( log2(abs(aSize)) / log2(1024) );
-		const string byte_output = (boost::format("%1% %2%") % aSize % sizes[0]).str();
+		string byte_output = (boost::format("( %1% %2% )") % aSize % pretty_print_styles[1]).str();
 
-		if( log < 1) {
-			return byte_output;
+		int iLog = 0;
+		for( auto iStyle: pretty_print_styles) {
+			if( iStyle == pretty_print_styles[0] ) {
+				continue;
+			}
+			if( iStyle == aPrintStyle ) {
+				byte_output = "";
+				log = iLog;
+				break;
+			}
+			iLog++;
 		}
 
-		if( log >= sizes.size() )
-			log = sizes.size()-1;
+		if( log >= count-1 )
+			log = count-1;
 
-		return (boost::format("%|1$.1f| %|2$| ( %|3$| )")
+		return (boost::format("%|1$.1f| %|2$| %|3$|")
 			% (aSize/pow(1024, log))
-			% sizes[log]
+			% pretty_print_styles[log+1]
 			% byte_output).str();
 	}
 

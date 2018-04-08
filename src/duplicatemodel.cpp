@@ -2,6 +2,14 @@
 #include "duplicatemodel.h"
 #include <QStringList>
 #include <QBrush>
+#include <QFileIconProvider>
+#include <QFileInfo>
+
+enum class dup_data_e {
+	ICON=0,
+	PATH=1,
+	COUNT,
+};
 
 DuplicateModel::duplicate_t DuplicateModel::create_summary(	fsdiff::diff_t* aDiffTree,
 															fsdiff::diff_t::idx_t aSide)
@@ -85,7 +93,7 @@ DuplicateModel::~DuplicateModel()
 
 int DuplicateModel::columnCount(const QModelIndex &parent) const
 {
-    return 1;
+    return static_cast<int>(dup_data_e::COUNT);
 }
 
 QVariant DuplicateModel::data(const QModelIndex &index, int role) const
@@ -95,28 +103,56 @@ QVariant DuplicateModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
+    auto indice = static_cast<std::tuple<int,int>*>(index.internalPointer());
+
+	//TODO: try tie operator
+	int idx0 = std::get<0>(*indice);
+	int idx1 = std::get<1>(*indice);
+
     if (role == Qt::DisplayRole) {
 
-    	auto indice = static_cast<std::tuple<int,int>*>(index.internalPointer());
-
-    	//TODO: try tie operator
-    	int idx0 = std::get<0>(*indice);
-    	int idx1 = std::get<1>(*indice);
-
     	if( -1 == idx1 ) {
+    		if( 1 != index.column() ) {
+    			return QVariant();
+    		}
+
     		fsdiff::diff_t* diff_item = m_duplicate_items[idx0][0];
 
     		const auto filesize = boost::filesystem::file_size(diff_item->fullpath[m_side]);
 
     		return QString("Filesize=%1")
-    				.arg(pretty_print_size(filesize).c_str());
+    				.arg(pretty_print_size(filesize, "auto").c_str());
     	}
     	else {
-    		return QString("%1").arg(m_duplicate_items[idx0][idx1]->fullpath[m_side].c_str());
+    		switch(static_cast<dup_data_e>(index.column()))
+    		{
+    		case dup_data_e::PATH:
+    			return QString("%1").arg(m_duplicate_items[idx0][idx1]->fullpath[m_side].c_str());
+    		case dup_data_e::ICON:
+    			return QVariant();
+    		default:
+    			return QVariant();
+    		};
+    	}
+    }
+    else if( role == Qt::DecorationRole ) {
+
+    	if( -1 == idx1 ) {
+    		return QVariant();
     	}
 
 
+    	switch(static_cast<dup_data_e>(index.column()))
+		{
+		case dup_data_e::PATH:
+			return QVariant();
+		case dup_data_e::ICON:
+			return QFileIconProvider().icon( QFileInfo(m_duplicate_items[idx0][idx1]->fullpath[m_side].c_str()) );
+		default:
+			return QVariant();
+		};
     }
+
 
     return QVariant();
 }

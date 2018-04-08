@@ -182,60 +182,63 @@ QPushButton* MainGui::createFileHashBtn()
 				auto duplicateWidget = new QWidget();
 				auto duplicateLayout = new QGridLayout();
 				duplicateWidget->setLayout(duplicateLayout);
-
-				auto duplicateModel = new DuplicateModel(fsdiff::diff_t::LEFT,
-						DuplicateModel::create_summary(m_model->rootItem.get(), fsdiff::diff_t::LEFT));
-
-				auto duplicateTree = new QTreeView();
-				duplicateTree->setModel(duplicateModel);
-
-				duplicateLayout->addWidget(duplicateTree, 0, 0);
-
 				m_main_tab->addTab(duplicateWidget, "Duplicates");
 
-				duplicateTree->expandAll();
-				duplicateTree->setContextMenuPolicy(Qt::ActionsContextMenu);
+				for(auto iSide: {fsdiff::diff_t::LEFT, fsdiff::diff_t::RIGHT} ) {
+					auto duplicateModel = new DuplicateModel(iSide,
+							DuplicateModel::create_summary(m_model->rootItem.get(), iSide));
 
-				//reset main model
-				m_model->refresh();
+					auto duplicateTree = new QTreeView();
+					duplicateTree->setModel(duplicateModel);
 
-				//show in diffview
-				auto diffview_action = new QAction("Show in Diffview", duplicateWidget);
+					duplicateLayout->addWidget(duplicateTree, 0, static_cast<int>(iSide));
 
-				connect(diffview_action, &QAction::triggered, [duplicateModel,duplicateTree,this]() {
-					auto idx = duplicateTree->currentIndex();
+					duplicateTree->expandAll();
+					duplicateTree->setContextMenuPolicy(Qt::ActionsContextMenu);
 
-					auto result = duplicateModel->data(idx, Qt::DisplayRole).toString();
+					//reset main model
+					m_model->refresh();
 
-					cout<<result.toStdString()<<endl;
+					//show in diffview
+					auto diffview_action = new QAction("Show in Diffview", duplicateWidget);
 
-					//look if we can find the string
-					{
-						m_model->iterate_over_all( [this,result](QModelIndex aModelIndex) {
+					connect(diffview_action, &QAction::triggered, [duplicateModel,duplicateTree,this, iSide]() {
+						auto idx = duplicateTree->currentIndex();
 
-							auto diffPtr = static_cast<fsdiff::diff_t*>(aModelIndex.internalPointer());
-							if( nullptr == diffPtr )
-								return;
+						auto result = duplicateModel->data(idx, Qt::DisplayRole).toString();
 
-							if( diffPtr->fullpath[0] == result.toStdString() ) {
-								std::cout<<"found: "<<diffPtr->fullpath[0].c_str()<<std::endl;
+						cout<<result.toStdString()<<endl;
 
-								QModelIndex map_src = m_filter_proxy->mapFromSource( aModelIndex );
-								m_tree_view->expandAll(); // workaround for scrollTo
-								m_tree_view->selectionModel()->select(map_src, QItemSelectionModel::ClearAndSelect);
-								m_tree_view->scrollTo(map_src, QAbstractItemView::PositionAtCenter);
+						//look if we can find the string
+						{
+							m_model->iterate_over_all( [this,result, iSide](QModelIndex aModelIndex) {
 
-								//m_tree_view->selectionModel()->select(aModelIndex, QItemSelectionModel::ClearAndSelect);
-								//m_tree_view->scrollTo(aModelIndex, QAbstractItemView::PositionAtCenter);
-							}
-						});
+								auto diffPtr = static_cast<fsdiff::diff_t*>(aModelIndex.internalPointer());
+								if( nullptr == diffPtr )
+									return;
 
-						m_main_tab->setCurrentIndex(0); //TODO: make a global mapping between indices and tabs
-					}
+								if( diffPtr->fullpath[iSide] == result.toStdString() ) {
+									std::cout<<"found: "<<diffPtr->fullpath[0].c_str()<<std::endl;
 
-				});
+									QModelIndex map_src = m_filter_proxy->mapFromSource( aModelIndex );
+									m_tree_view->expandAll(); // workaround for scrollTo
+									m_tree_view->selectionModel()->select(map_src, QItemSelectionModel::ClearAndSelect);
+									m_tree_view->scrollTo(map_src, QAbstractItemView::PositionAtCenter);
 
-				duplicateTree->addAction(diffview_action);
+									//m_tree_view->selectionModel()->select(aModelIndex, QItemSelectionModel::ClearAndSelect);
+									//m_tree_view->scrollTo(aModelIndex, QAbstractItemView::PositionAtCenter);
+								}
+							});
+
+							m_main_tab->setCurrentIndex(0); //TODO: make a global mapping between indices and tabs
+						}
+
+					});
+
+					duplicateTree->addAction(diffview_action);
+
+				}
+
 
 			}
 
@@ -288,6 +291,10 @@ QWidget* MainGui::createFilterBtns()
 		for(auto iUnit: fsdiff::pretty_print_styles) {
 			cmbo_box->addItem(iUnit.c_str());
 		}
+
+		connect(cmbo_box, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), [this](const QString &text) -> void {
+			m_model->setSizeUnit(text);
+		});
 
 
 		filter_layout->addWidget( size_unit_widget );

@@ -96,11 +96,13 @@ namespace fsdiff
 
 	static string pretty_print_styles[] = {
 		"auto",
+		"bytes",
 		"KiB",
 		"MiB",
 		"GiB",
 	};
-	string pretty_print_size(int64_t aSize);
+
+	string pretty_print_size(int64_t aSize, std::string aPrintStyle);
 
 	void dump(shared_ptr<diff_t> & aTree, int aDepth=0);
 
