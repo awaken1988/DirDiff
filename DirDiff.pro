@@ -8,7 +8,8 @@ SOURCES =   src/main.cpp \
            	src/detailgui.cpp \
            	src/opengui.cpp \
            	src/duplicatemodel.cpp \
-           	src/filter.cpp
+           	src/filter.cpp \
+           	src/logger.cpp
 
 HEADERS = 	src/treemodel.h \
 			src/sortfilterproxy.h \
@@ -16,7 +17,8 @@ HEADERS = 	src/treemodel.h \
 			src/detailgui.h \
 			src/opengui.h \
 			src/duplicatemodel.h \
-			src/filter.h
+			src/filter.h \
+			src/logger.h
 
 CONFIG += debug
 

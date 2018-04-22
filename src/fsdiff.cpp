@@ -7,6 +7,7 @@
 
 #include "fsdiff.h"
 #include "sys/stat.h"
+#include "logger.h"
 #include <tuple>
 #include <array>
 #include <cmath>
@@ -94,12 +95,17 @@ namespace fsdiff
 			for(int iSide=0; iSide<2; iSide++) {
 				if( is_regular_file(aTree.fullpath[iSide]) ) {
 					QFile hashFile( (aTree.fullpath[iSide]).string().c_str() ) ;
-					if( !hashFile.open(QIODevice::ReadOnly) )
+					if( !hashFile.open(QIODevice::ReadOnly) ) {
+						LoggerWarning( string("FileHash: cannot open ") + aTree.fullpath[iSide].string().c_str() );
 						continue;
+					}
+
 
 					QCryptographicHash hashFunction(QCryptographicHash::Sha3_512);
-					if( !hashFunction.addData(&hashFile))
+					if( !hashFunction.addData(&hashFile)) {
+						LoggerWarning( string("FileHash: cannot generate hash from file (open readonly)") + aTree.fullpath[iSide].string().c_str() );
 						continue;
+					}
 
 					QByteArray result = hashFunction.result();
 
@@ -207,8 +213,10 @@ namespace fsdiff
 
 		for(directory_entry iEntry: directory_iterator( ret->fullpath[diff_t::LEFT] ) ) {
 
-			if( !impl_check_access(iEntry.path() ) )
+			if( !impl_check_access(iEntry.path() ) ) {
+				LoggerWarning( string("no access rights for ") + iEntry.path().c_str() );
 				continue;
+			}
 
 			//filter
 			if( !filter_item_t::is_included(aFilter, iEntry.path().c_str()) )

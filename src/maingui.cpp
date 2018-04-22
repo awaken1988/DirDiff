@@ -9,6 +9,9 @@
 #include "maingui.h"
 #include "opengui.h"
 #include "duplicatemodel.h"
+#include "logger.h"
+#include <chrono>
+#include <ctime>
 #include <QMimeDatabase>
 #include <QSpacerItem>
 #include <QVBoxLayout>
@@ -95,6 +98,9 @@ void MainGui::startDiff(shared_ptr<fsdiff::diff_t> aDiff)
 	m_layout->addWidget(m_detail_tab, m_layout->rowCount(), 0, 1, 2);
 	init_left_right_info();
 
+	//log
+	init_log();
+
 	//Progress bar
 	{
 		m_progress_list = new QVBoxLayout();
@@ -118,6 +124,9 @@ void MainGui::startDiff(shared_ptr<fsdiff::diff_t> aDiff)
 			diffTabContent->setLayout(m_layout);
 			m_main_tab->addTab(diffTabContent, "Diff");
 		}
+
+		//log tab
+		m_main_tab->addTab(m_log_text, "Log");
 	}
 
 }
@@ -244,7 +253,20 @@ QPushButton* MainGui::createFileHashBtn()
 
 			return;
 		};
-		auto step = [progress](int aMin, int aMax, int aCurr)->void {
+
+		auto last_time = std::chrono::steady_clock::now();
+		auto step = [progress,last_time,this](int aMin, int aMax, int aCurr) mutable -> void {
+
+			auto curr_time = std::chrono::steady_clock::now();
+			auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(last_time - curr_time);
+
+			if( delta_time.count() < 1000 ) {
+				return;
+			}
+
+			last_time = std::chrono::steady_clock::now();
+
+
 			progress->setMinimum(aMin);
 			progress->setMaximum(aMax);
 			progress->setValue(aCurr);
@@ -324,6 +346,28 @@ QWidget* MainGui::createFilterBtns()
 	};
 
 	return ret;
+}
+
+void MainGui::init_log()
+{
+	m_log_text = new QTextEdit();
+	m_log_text->setReadOnly(true);
+
+	Logger::Instance()->attach(
+			[this](const log_item_t& aItem) -> void {
+
+		 	 	 std::time_t now_c = std::chrono::system_clock::to_time_t( aItem.time );
+
+				m_log_text->insertHtml(QString("<span style=\"background-color: #%4; font-family: courier;\"> <b>%3</b> <i>%1:</i> %2 </span> <br />")
+				.arg( std::ctime(&now_c), -24, QChar('_') )
+				.arg(aItem.msg.c_str())
+				.arg(log_level_t_str(aItem.level).c_str(), -16, QChar('_') )
+				.arg(log_level_t_color(aItem.level), 8, 16, QChar('0')));
+	});
+
+	LoggerInfo("Attach Gui Log");
+	LoggerWarning("Attach Gui Log");
+	LoggerError("Attach Gui Log");
 }
 
 void MainGui::init_left_right_info()

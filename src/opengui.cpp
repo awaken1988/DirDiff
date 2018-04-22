@@ -7,6 +7,8 @@
 
 #include "opengui.h"
 
+#include <iostream>
+#include <chrono>
 #include <QtGui>
 #include <QLineEdit>
 #include <QLabel>
@@ -16,7 +18,6 @@
 #include <QMainWindow>
 #include <QDesktopWidget>
 #include <QFileDialog>
-#include <iostream>
 #include "fsdiff.h"
 
 OpenGui::OpenGui(QWidget *parent)
@@ -167,7 +168,18 @@ FileLoadWalker::~FileLoadWalker()
 
 void FileLoadWalker::hashAllFiles()
 {
-	auto difftree = fsdiff::compare(m_paths[0], m_paths[1], [this](std::string aFileName){
+	auto last_time = std::chrono::steady_clock::now();
+	auto difftree = fsdiff::compare(m_paths[0], m_paths[1], [this, last_time](std::string aFileName) mutable {
+		auto curr_time = std::chrono::steady_clock::now();
+		auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>( curr_time - last_time );
+		auto delta_time_count = delta_time.count();
+
+		if( delta_time_count < 2000 ) {
+			return;
+		}
+
+		last_time = std::chrono::steady_clock::now();
+
 		emit stepReady(aFileName);
 	}, m_filter);
 

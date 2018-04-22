@@ -19,6 +19,7 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <QProgressBar>
+#include <QTextEdit>
 #include "fsdiff.h"
 #include "treemodel.h"
 #include "sortfilterproxy.h"
@@ -41,6 +42,7 @@ public slots:
 protected:
 	void init_left_right_info();
 	void init_file_filter();
+	void init_log();
 
 	QWidget* startDiffHashes();
 	QWidget* startDiffDuplicates();
@@ -56,6 +58,7 @@ protected:
 	QGridLayout* m_layout;
 	QTabWidget* m_detail_tab;
 	int m_detail_tab_idx=0;
+	QTextEdit* m_log_text;
 
 	QVBoxLayout* m_progress_list;
 

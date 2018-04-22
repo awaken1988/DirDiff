@@ -57,19 +57,13 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
         const bool is_added = fsdiff::cause_t::ADDED == item->cause;
         const diff_t::idx_t idx_side = is_added ? diff_t::RIGHT : diff_t::LEFT;
 
-        if( index.column() == static_cast<int>(column_e::ITEM_NAME) ) {
-            return QString( item->getLastName(idx_side).string().c_str() );
-        }
-        else if(  index.column() == static_cast<int>(column_e::ITEM_CAUSE)  ) {
-			return fsdiff::cause_t_str( item->cause ).c_str();
-		 }
-        else if(  index.column() == static_cast<int>(column_e::DIFF_SIZE)  ) {
-            auto sdiff = fsdiff::diff_size(*item);
-        	return QString("%1").arg( pretty_print_size(sdiff, m_size_unit.toStdString()).c_str() );
-        }
-        else {
-            return QVariant();
-        }
+        switch(static_cast<column_e>(index.column()))
+        {
+        case column_e::ITEM_NAME:	return QString( item->getLastName(idx_side).string().c_str() );
+        case column_e::ITEM_CAUSE:	return fsdiff::cause_t_str( item->cause ).c_str();
+        case column_e::DIFF_SIZE:	return QString("%1").arg( pretty_print_size(fsdiff::diff_size(*item), m_size_unit.toStdString()).c_str());
+        default: return QVariant();
+        };
     }
     else if( role == Qt::BackgroundRole ) {
     	using namespace fsdiff;
@@ -87,18 +81,14 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     	}
     }
     if (role == Qt::TextAlignmentRole ) {
-        if( index.column() == static_cast<int>(column_e::ITEM_NAME) ) {
-        	return Qt::AlignLeft;
-        }
-        else if(  index.column() == static_cast<int>(column_e::ITEM_CAUSE)  ) {
-        	return Qt::AlignLeft;
-		 }
-        else if(  index.column() == static_cast<int>(column_e::DIFF_SIZE)  ) {
-        	return Qt::AlignRight;
-        }
-        else {
-            return QVariant();
-        }
+
+        switch(static_cast<column_e>(index.column()))
+        {
+        case column_e::ITEM_NAME:	return Qt::AlignLeft;
+        case column_e::ITEM_CAUSE:	return Qt::AlignLeft;
+        case column_e::DIFF_SIZE:	return Qt::AlignRight;
+        default: return QVariant();
+        };
     }
     return QVariant();
 }
