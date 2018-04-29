@@ -164,6 +164,9 @@ void MainGui::clicked_diffitem(const QModelIndex &index)
 	//content
 	m_detail_tab->addTab(detailgui::show_content(diff), "Content");
 
+	//content
+	m_detail_tab->addTab(detailgui::show_diff(diff), "Diff");
+
 	//show duplicates
 	m_detail_tab->addTab(detailgui::show_duplicates(diff), "Duplicates");
 

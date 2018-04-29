@@ -15,6 +15,7 @@ namespace detailgui
 {
 	QWidget* show_detail(fsdiff::diff_t* aDiff);
 	QWidget* show_content(fsdiff::diff_t* aDiff);
+	QWidget* show_diff(fsdiff::diff_t* aDiff);
 	QWidget* show_duplicates(fsdiff::diff_t* aDiff);
 }
 

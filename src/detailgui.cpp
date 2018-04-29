@@ -6,6 +6,8 @@
  */
 
 #include <type_traits>
+#include <array>
+#include <sstream>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/exception.hpp>
 #include <QGridLayout>
@@ -23,8 +25,10 @@
 #include <QScrollBar>
 #include <QTreeView>
 #include <QLabel>
+#include <QTextStream>
 #include "detailgui.h"
 #include "duplicatemodel.h"
+#include "dtl/dtl/dtl.hpp"
 
 
 
@@ -373,6 +377,77 @@ namespace detailgui
 		gridLayout->addWidget(loaded_widgets[1], 0, 1);
 
 		 impl_after_content(loaded_widgets);
+
+
+		return mainWidget;
+	}
+
+	QWidget* show_diff(fsdiff::diff_t* aDiff)
+	{
+		using namespace fsdiff;
+
+		using dtl::Diff;
+		using dtl::elemInfo;
+		using dtl::uniHunk;
+
+		typedef string                 elem;
+		typedef vector< elem >         sequence;
+		typedef pair< elem, elemInfo > sesElem;
+
+		std::array<sequence, 2> diff_side;
+
+		for(int iSide=0; iSide<SIDES; iSide++) {
+			QFile file( aDiff->fullpath[iSide].c_str() );
+			if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+				continue;
+			}
+
+			QTextStream fileStream(&file);
+			QString line;
+			while( fileStream.readLineInto(&line) ) {
+				diff_side[iSide].push_back(line.toStdString());
+			}
+		}
+
+		Diff< elem > diff(diff_side[0], diff_side[1]);
+		diff.onHuge();
+		diff.compose();
+		diff.composeUnifiedHunks();
+
+		QWidget* mainWidget = new QWidget;
+		QGridLayout * gridLayout = new QGridLayout;
+		mainWidget->setLayout(gridLayout);
+		std::array<QWidget*, 2> loaded_widgets = {nullptr, nullptr};
+
+		for(int iSide=0; iSide<SIDES; iSide++) {
+			if( (cause_t::ADDED == aDiff->cause && iSide != diff_t::RIGHT)
+				|| (cause_t::DELETED == aDiff->cause && iSide != diff_t::LEFT) )
+			{
+				loaded_widgets[iSide] = new QLabel( fsdiff::cause_t_str(aDiff->cause).c_str());
+			}
+			else
+			{
+				auto content = new QTextEdit();
+
+				auto hunkz = diff.getUniHunks();
+
+				stringstream ss;
+
+				Diff< elem >::printUnifiedFormat(hunkz, ss);
+
+				content->append( ss.str().c_str() );
+
+				loaded_widgets[iSide] = content;
+			}
+
+			gridLayout->setColumnStretch(iSide, 1);
+		}
+
+		//add to layout
+		gridLayout->addWidget(loaded_widgets[0], 0, 0);
+		gridLayout->addWidget(loaded_widgets[1], 0, 1);
+
+		impl_after_content(loaded_widgets);
 
 
 		return mainWidget;
