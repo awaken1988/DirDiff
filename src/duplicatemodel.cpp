@@ -219,8 +219,9 @@ QModelIndex DuplicateModel::parent(const QModelIndex &index) const
     	return QModelIndex();
 
     //TODO: try tie operator
-    int idx0 = std::get<0>(*indice);
-    int idx1 = std::get<1>(*indice);
+    //int idx0 = std::get<0>(*indice);
+    //int idx1 = std::get<1>(*indice);
+    auto [idx0, idx1] = *indice;
 
     if( -1 == idx0 )
     	return QModelIndex();

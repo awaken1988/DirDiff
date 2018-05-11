@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <array>
 #include <sstream>
+#include <string>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/exception.hpp>
 #include <QGridLayout>
@@ -29,12 +30,21 @@
 #include "detailgui.h"
 #include "duplicatemodel.h"
 #include "dtl/dtl/dtl.hpp"
+#include "dtl/dtl/variables.hpp"
 
 
 
 namespace detailgui
 {
 	constexpr int SIDES = 2;
+
+	using dtl::Diff;
+	using dtl::elemInfo;
+	using dtl::uniHunk;
+
+	typedef string                 elem;
+	typedef vector< elem >         sequence;
+	typedef pair< elem, elemInfo > sesElem;
 
 	QString impl_get_mime(const boost::filesystem::path& aFilePath)
 	{
@@ -382,18 +392,32 @@ namespace detailgui
 		return mainWidget;
 	}
 
-	QWidget* show_diff(fsdiff::diff_t* aDiff)
+	std::string impl_show_diff_colorize(dtl::edit_t aEdit)
+	{
+		std::string color = "0xFFFFFFFF";
+
+		switch(aEdit) {
+			case dtl::SES_DELETE: {
+				color = "#fc6f4b";
+			} break;
+			case dtl::SES_COMMON: {
+				color = "#ffffff";
+			} break;
+			case dtl::SES_ADD: {
+				color = "#7bfc67";
+
+			} break;
+		}
+
+		return color;
+	}
+
+	std::vector<string> impl_show_diff(fsdiff::diff_t* aDiff)
 	{
 		using namespace fsdiff;
 
-		using dtl::Diff;
-		using dtl::elemInfo;
-		using dtl::uniHunk;
 
-		typedef string                 elem;
-		typedef vector< elem >         sequence;
-		typedef pair< elem, elemInfo > sesElem;
-
+		//open files
 		std::array<sequence, 2> diff_side;
 
 		for(int iSide=0; iSide<SIDES; iSide++) {
@@ -409,15 +433,111 @@ namespace detailgui
 			}
 		}
 
+		//diff files
 		Diff< elem > diff(diff_side[0], diff_side[1]);
 		diff.onHuge();
 		diff.compose();
 		diff.composeUnifiedHunks();
+		auto uni_hunks = diff.getUniHunks();
+
+		auto ret = std::vector<string>{std::string(""), std::string("") };
+
+
+		for(int iSide=0; iSide<2; iSide++) {
+			const auto orig_text = diff_side[iSide];
+			int last_unihunk_idx = uni_hunks.size()-1;
+
+			for(int iTxt=orig_text.size()-1; iTxt>=0;) {
+				auto& curr_hunk = uni_hunks[last_unihunk_idx];
+				int hunk_start_line = iSide == 0 ? curr_hunk.a : curr_hunk.c;
+				int hunk_end_line = hunk_start_line + (iSide == 0 ? curr_hunk.b : curr_hunk.d);
+				if( hunk_end_line-1 == iTxt) {
+					auto& changes = curr_hunk.change;
+
+					for(int iChange=changes.size()-1; iChange>=0; iChange--) {
+						auto& curr_change = changes[iChange];
+						auto color = impl_show_diff_colorize(curr_change.second.type);
+
+						std::string curr_text = curr_change.first;
+						switch(curr_change.second.type)
+						{
+							case dtl::SES_DELETE: {
+								if( iSide == 1 ) {
+									curr_text = "";
+								}
+							} break;
+							case dtl::SES_COMMON: {
+
+							} break;
+							case dtl::SES_ADD: {
+								if( iSide == 0 ) {
+									curr_text = "";
+								}
+
+							} break;
+						}
+
+						if( curr_text.size() < 1 ) {
+							curr_text = "...";
+						}
+
+						ret[iSide] = "<div style=\"background-color: "+color+";\">" + curr_text + "</div>"+ ret[iSide];
+					}
+
+					iTxt -= hunk_end_line - hunk_start_line;
+					if( last_unihunk_idx > 0 ) {
+						last_unihunk_idx--;
+					}
+				}
+				else {
+					std::string curr_text = orig_text[iTxt];
+
+					if( curr_text.size() < 1 ) {
+						curr_text = "...";
+					}
+
+					ret[iSide] = "<div style=\"background-color: white;\">" + curr_text + "</div>"+ ret[iSide];
+					iTxt--;
+				}
+
+
+			}
+		}
+
+
+
+//		for(auto iHunk: diff.getUniHunks()) {
+//
+//			for(int iPost=0; iPost<2; iPost++) {
+//				for(auto iChange: iHunk.common[iPost]) {
+//						ret[iPost] += iChange.first + "<br/>";
+//				}
+//			}
+//
+//			for(auto iChange: iHunk.change) {
+//					ret[0] += iChange.first + ":"+ std::to_string(iChange.second.type) + "<br/>";
+//					ret[1] += iChange.first + ":"+ std::to_string(iChange.second.type) + "<br/>";
+//			}
+//
+//
+//			ret[0] += "---<br/>";
+//			ret[1] += "---<br/>";
+//		}
+
+		return ret;
+	}
+
+
+	QWidget* show_diff(fsdiff::diff_t* aDiff)
+	{
+		using namespace fsdiff;
 
 		QWidget* mainWidget = new QWidget;
 		QGridLayout * gridLayout = new QGridLayout;
 		mainWidget->setLayout(gridLayout);
 		std::array<QWidget*, 2> loaded_widgets = {nullptr, nullptr};
+
+		auto results = impl_show_diff(aDiff);
 
 		for(int iSide=0; iSide<SIDES; iSide++) {
 			if( (cause_t::ADDED == aDiff->cause && iSide != diff_t::RIGHT)
@@ -429,13 +549,7 @@ namespace detailgui
 			{
 				auto content = new QTextEdit();
 
-				auto hunkz = diff.getUniHunks();
-
-				stringstream ss;
-
-				Diff< elem >::printUnifiedFormat(hunkz, ss);
-
-				content->append( ss.str().c_str() );
+				content->append( results[iSide].c_str() );
 
 				loaded_widgets[iSide] = content;
 			}
