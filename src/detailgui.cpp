@@ -330,16 +330,17 @@ namespace detailgui
 		return content_widget;
 	}
 
+	template<typename TTextWidget>
 	static void impl_after_content(std::array<QWidget*, 2>& aWidgets)
 	{
 		//QPlainTextEdit
 		{
-			QPlainTextEdit* left = dynamic_cast<QPlainTextEdit*>(aWidgets[0]);
-			QPlainTextEdit* right = dynamic_cast<QPlainTextEdit*>(aWidgets[1]);
+			TTextWidget* left = dynamic_cast<TTextWidget*>(aWidgets[0]);
+			TTextWidget* right = dynamic_cast<TTextWidget*>(aWidgets[1]);
 
 			if( nullptr != left && nullptr != right) {
 
-				auto slider_sync_fun = [](QPlainTextEdit* aLeft, QPlainTextEdit* aRight) {
+				auto slider_sync_fun = [](TTextWidget* aLeft, TTextWidget* aRight) {
 					int slider_val = aLeft->verticalScrollBar()->value();
 					slider_val = slider_val > aRight->verticalScrollBar()->maximum() ?
 							aRight->verticalScrollBar()->maximum() : slider_val;
@@ -386,7 +387,7 @@ namespace detailgui
 		gridLayout->addWidget(loaded_widgets[0], 0, 0);
 		gridLayout->addWidget(loaded_widgets[1], 0, 1);
 
-		 impl_after_content(loaded_widgets);
+		 impl_after_content<QPlainTextEdit>(loaded_widgets);
 
 
 		return mainWidget;
@@ -561,7 +562,7 @@ namespace detailgui
 		gridLayout->addWidget(loaded_widgets[0], 0, 0);
 		gridLayout->addWidget(loaded_widgets[1], 0, 1);
 
-		impl_after_content(loaded_widgets);
+		impl_after_content<QTextEdit>(loaded_widgets);
 
 
 		return mainWidget;

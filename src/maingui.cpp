@@ -211,6 +211,7 @@ QPushButton* MainGui::createFileHashBtn()
 					//reset main model
 					m_model->refresh();
 
+
 					//show in diffview
 					auto diffview_action = new QAction("Show in Diffview", duplicateWidget);
 

@@ -13,6 +13,9 @@ SortFilterProxy::SortFilterProxy(QObject* aParent)
 	: 	QSortFilterProxyModel(aParent),
 		m_items_show(fsdiff::cause_t_list())
 {
+	connect(this, &QSortFilterProxyModel::modelReset, [this] (){
+		m_cause_cache.clear();
+	});
 
 }
 
@@ -79,6 +82,7 @@ void SortFilterProxy::setExpressions(std::vector<fsdiff::filter_item_t> aExpress
 {
 	std::cout<<"setExpression"<<std::endl;
 	m_expressions = aExpressions;
+	m_cause_cache.clear();
 	this->invalidateFilter();
 }
 
