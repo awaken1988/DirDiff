@@ -53,8 +53,8 @@ bool SortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceP
 	}
 
 	return ret_diff
-			&& fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[0].c_str())
-			&& fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[1].c_str());
+			&& fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[0].string().c_str())
+			&& fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[1].string().c_str());
 }
 
 bool SortFilterProxy::lessThan(const QModelIndex &left, const QModelIndex &right) const

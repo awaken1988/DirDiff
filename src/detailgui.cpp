@@ -422,7 +422,7 @@ namespace detailgui
 		std::array<sequence, 2> diff_side;
 
 		for(int iSide=0; iSide<SIDES; iSide++) {
-			QFile file( aDiff->fullpath[iSide].c_str() );
+			QFile file( aDiff->fullpath[iSide].string().c_str() );
 			if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
 				continue;
 			}

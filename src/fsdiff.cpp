@@ -214,12 +214,12 @@ namespace fsdiff
 		for(directory_entry iEntry: directory_iterator( ret->fullpath[diff_t::LEFT] ) ) {
 
 			if( !impl_check_access(iEntry.path() ) ) {
-				LoggerWarning( string("no access rights for ") + iEntry.path().c_str() );
+				LoggerWarning( string("no access rights for ") + iEntry.path().string() );
 				continue;
 			}
 
 			//filter
-			if( !filter_item_t::is_included(aFilter, iEntry.path().c_str()) )
+			if( !filter_item_t::is_included(aFilter, iEntry.path().string().c_str()) )
 				continue;
 
 			ret->childs.push_back( impl_list_dir_rekursive(aAbsoluteBase, iEntry.path(), ret.get(), aFunction, aFilter) );
