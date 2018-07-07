@@ -147,7 +147,7 @@ QVariant DuplicateModel::data(const QModelIndex &index, int role) const
 		case dup_data_e::PATH:
 			return QVariant();
 		case dup_data_e::ICON:
-			return QFileIconProvider().icon( QFileInfo(m_duplicate_items[idx0][idx1]->fullpath[m_side].c_str()) );
+			return QFileIconProvider().icon( QFileInfo(m_duplicate_items[idx0][idx1]->fullpath[m_side].string().c_str()) );
 		default:
 			return QVariant();
 		};
@@ -219,9 +219,9 @@ QModelIndex DuplicateModel::parent(const QModelIndex &index) const
     	return QModelIndex();
 
     //TODO: try tie operator
-    //int idx0 = std::get<0>(*indice);
-    //int idx1 = std::get<1>(*indice);
-    auto [idx0, idx1] = *indice;
+    int idx0 = std::get<0>(*indice);
+    int idx1 = std::get<1>(*indice);
+    //auto [idx0, idx1] = *indice;
 
     if( -1 == idx0 )
     	return QModelIndex();

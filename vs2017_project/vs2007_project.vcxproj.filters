@@ -49,6 +49,12 @@
     <ClCompile Include="..\src\treemodel.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\filter.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\logger.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\detailgui.h">
@@ -66,6 +72,9 @@
     <ClInclude Include="resource.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\logger.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="..\src\duplicatemodel.h">
@@ -75,6 +84,9 @@
       <Filter>src</Filter>
     </QtMoc>
     <QtMoc Include="..\src\treemodel.h">
+      <Filter>src</Filter>
+    </QtMoc>
+    <QtMoc Include="..\src\filter.h">
       <Filter>src</Filter>
     </QtMoc>
   </ItemGroup>

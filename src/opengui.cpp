@@ -47,10 +47,10 @@ OpenGui::OpenGui(QWidget *parent)
 		auto bntDialog	= new QPushButton(this->style()->standardIcon(QStyle::SP_DialogOpenButton), "Open", this);
 
 		if( 0 == iSide ) {
-			m_paths[iSide]->setText("/home/martin/Dropbox/Programming/DirDiff/left/");
+			m_paths[iSide]->setText("");
 		}
 		else {
-			m_paths[iSide]->setText("/home/martin/Dropbox/Programming/DirDiff/right/");
+			m_paths[iSide]->setText("");
 		}
 
 		decltype(m_paths[iSide]) curr_paths = m_paths[iSide];
