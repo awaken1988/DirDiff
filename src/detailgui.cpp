@@ -330,6 +330,8 @@ namespace detailgui
 		return content_widget;
 	}
 
+	static int slider_print_count = 0;
+
 	template<typename TTextWidget>
 	static void impl_after_content(std::array<QWidget*, 2>& aWidgets)
 	{
@@ -339,12 +341,15 @@ namespace detailgui
 			TTextWidget* right = dynamic_cast<TTextWidget*>(aWidgets[1]);
 
 			if( nullptr != left && nullptr != right) {
-
 				auto slider_sync_fun = [](TTextWidget* aLeft, TTextWidget* aRight) {
-					int slider_val = aLeft->verticalScrollBar()->value();
+					auto left_value = aLeft->verticalScrollBar()->value();
+
+					int slider_val = left_value;
 					slider_val = slider_val > aRight->verticalScrollBar()->maximum() ?
 							aRight->verticalScrollBar()->maximum() : slider_val;
 					aRight->verticalScrollBar()->setValue(slider_val);
+
+					std::cout<<"slider_val="<<slider_val<<std::endl;
 				};
 
 				QObject::connect(left->verticalScrollBar(), &QScrollBar::actionTriggered, [slider_sync_fun, left,right](){
@@ -448,7 +453,24 @@ namespace detailgui
 			const auto orig_text = diff_side[iSide];
 			int last_unihunk_idx = uni_hunks.size()-1;
 
+			//simply prepend a line to the output -> if we are not in diff mode
+			auto add_normal_text = [&orig_text, &ret, &iSide](int aIndexTxt){
+				std::string curr_text = orig_text[aIndexTxt];
+
+				if( curr_text.size() < 1 ) {
+					curr_text = "...";
+				}
+
+				ret[iSide] = "<div style=\"background-color: white;\">" + curr_text + "</div>"+ ret[iSide];
+			};
+
 			for(int iTxt=orig_text.size()-1; iTxt>=0;) {
+				//special case: there are no differences
+				if( last_unihunk_idx < 0 ) {
+					add_normal_text(iTxt--);
+					continue;
+				}
+
 				auto& curr_hunk = uni_hunks[last_unihunk_idx];
 				int hunk_start_line = iSide == 0 ? curr_hunk.a : curr_hunk.c;
 				int hunk_end_line = hunk_start_line + (iSide == 0 ? curr_hunk.b : curr_hunk.d);
@@ -491,14 +513,7 @@ namespace detailgui
 					}
 				}
 				else {
-					std::string curr_text = orig_text[iTxt];
-
-					if( curr_text.size() < 1 ) {
-						curr_text = "...";
-					}
-
-					ret[iSide] = "<div style=\"background-color: white;\">" + curr_text + "</div>"+ ret[iSide];
-					iTxt--;
+					add_normal_text(iTxt--);
 				}
 
 

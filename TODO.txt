@@ -1,6 +1,11 @@
 - code style
 	- rename enums _t to _e 
-- Filter (Duplicates)
+- Diff Widget:
+	- only load txt files (no binaries; causes long freezes)
+	- fix strange scroll offset
+	- enable/disable connected scrollbars
+
+# done
 - Duplicates (Left,Right)
 - CONTENT changed checkbox doesn't work
 - Text diff widget (external)
