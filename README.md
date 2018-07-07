@@ -10,7 +10,11 @@ is calculated over all files (can be time-cosuming). After that also file differ
 There are also regex filter to include or exclude specific files.
 
 ## Features
-* Integrated Diff Gui (not ready!)
+* Find duplicate files (after click "compare files")
+* Integrated Diff Gui (deactivated; see TODO)
 
 ## TODO
 * HexEditor-Widget to show binary files (from a external Project)
+* Progressbar when loading files have a strange behaviour (updating files on dialog only x seconds long; instead every x seconds)
+* Hash Progressbar seems to be broken
+* Integrated Diff Gui: Diff only text files otherwise applications hangs on large binaries or crash

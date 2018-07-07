@@ -53,8 +53,8 @@ bool SortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceP
 	}
 
 	//check full filepath agains regexp
-	const bool is_left_name = fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[0].c_str());
-	const bool is_right_name = fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[1].c_str());
+	const bool is_left_name = fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[0].string().c_str());
+	const bool is_right_name = fsdiff::filter_item_t::is_included(m_expressions, left_ptr->fullpath[1].string().c_str());
 	const bool is_name = [&]() -> bool {
 		if( fsdiff::cause_t::ADDED == left_ptr->cause ){
 			return is_right_name;
