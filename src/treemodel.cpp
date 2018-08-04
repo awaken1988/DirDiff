@@ -61,7 +61,12 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
         {
         case column_e::ITEM_NAME:	return QString( item->getLastName(idx_side).string().c_str() );
         case column_e::ITEM_CAUSE:	return fsdiff::cause_t_str( item->cause ).c_str();
-        case column_e::DIFF_SIZE:	return QString("%1").arg( pretty_print_size(fsdiff::diff_size(*item), m_size_unit.toStdString()).c_str());
+        case column_e::DIFF_SIZE:	{
+        		auto curr_size = fsdiff::diff_size(*item);
+        		if( 0 == curr_size )
+        			return QString("");
+        		return QString("%1").arg( pretty_print_size(curr_size, m_size_unit.toStdString()).c_str());
+        	}
         default: return QVariant();
         };
     }
@@ -198,7 +203,7 @@ void TreeModel::iterate_over_all(std::function<void(QModelIndex)> aFunc)
 	iterate_over_all_inner(aFunc, QModelIndex() );
 }
 
-void TreeModel::startFileHash( std::function<void()> aOnReady, std::function<void(int,int,int)> aStep  )
+void TreeModel::startFileHash( std::function<void()> aOnReady, std::function<void(int)> aStep  )
 {
 	QThread* thread = new QThread;
 	FilehashWorker* worker = new FilehashWorker(rootItem);
@@ -245,8 +250,8 @@ FilehashWorker::~FilehashWorker()
 
 void FilehashWorker::hashAllFiles()
 {
-	m_tree->createFileHashes([this](int aMin, int aMax, int aCurr) {
-		emit stepReady(aMin, aMax, aCurr);
+	m_tree->createFileHashes([this](int aCurr) {
+		emit stepReady(aCurr);
 	});
 
 	emit resultReady();

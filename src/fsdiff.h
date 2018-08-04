@@ -69,7 +69,7 @@ namespace fsdiff
 		bool isBase();
 
 		//optional filehashes
-		void createFileHashes(std::function<void(int,int,int)> aStep);
+		void createFileHashes(std::function<void(int)> aStep);
 		shared_ptr<file_hash_t> file_hashes;
 
 		int debug_id;

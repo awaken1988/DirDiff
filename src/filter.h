@@ -31,6 +31,7 @@ protected:
 
 	QPushButton* m_btn_include;
 	QPushButton* m_btn_exclude;
+	QPushButton* m_btn_clear;
 
 	QShortcut* m_shortcut;
 

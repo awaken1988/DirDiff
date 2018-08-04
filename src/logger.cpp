@@ -28,3 +28,25 @@ void Logger::attach(logger_sink_f aSink)
 
 	m_sinks.push_back(aSink);
 }
+
+std::string log_level_t_str(const log_level_t& aLevel)
+{
+	switch(aLevel) {
+	case log_level_t::INFO: 	return "INFO";
+	case log_level_t::WARNING: 	return "WARNING";
+	case log_level_t::ERROR:	return "ERROR";
+	}
+
+	return "UNKOWN_LOG_LEVEL";
+}
+
+uint32_t log_level_t_color(const log_level_t& aLevel)
+{
+	switch(aLevel) {
+	case log_level_t::INFO: 	return 0xFFEDEDED;
+	case log_level_t::WARNING: 	return 0xFFffea4f;
+	case log_level_t::ERROR:	return 0xFFf9614d;
+	};
+
+	return 0xFFFFFFFF;
+}

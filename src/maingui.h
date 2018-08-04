@@ -68,7 +68,7 @@ protected:
 
 	const bool m_with_filter = true;
 
-
+	QLabel* m_statusbar_hash = nullptr;
 };
 
 #endif /* MAINGUI_H_ */

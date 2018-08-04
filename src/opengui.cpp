@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <QElapsedTimer>
 #include <QtGui>
 #include <QLineEdit>
 #include <QLabel>
@@ -76,7 +77,7 @@ OpenGui::OpenGui(QWidget *parent)
 	auto btnOk = new QPushButton("Ok", this);
 	btnLayout->addWidget(btnOk);
 
-	QObject::connect(btnOk, &QPushButton::clicked, [this](bool a) {
+	QObject::connect(btnOk, &QPushButton::clicked, [this, btnOk](bool a) {
 		m_paths_str.clear();
 		for(int iSide=0; iSide<2; iSide++) {
 			m_paths_str.push_back( boost::filesystem::path( m_paths[iSide]->text().toStdString() ) );
@@ -86,6 +87,12 @@ OpenGui::OpenGui(QWidget *parent)
 		m_load_progress->setTextVisible(true);
 		m_load_progress->setMinimum(0);
 		m_load_progress->setMaximum(0);
+
+		//hide and lock
+		for(auto iEdit: this->m_paths) {
+			iEdit->setReadOnly(true);
+		}
+		btnOk->setDisabled(true);
 
 		//start thread
 		{
@@ -168,19 +175,14 @@ FileLoadWalker::~FileLoadWalker()
 
 void FileLoadWalker::hashAllFiles()
 {
-	auto last_time = std::chrono::steady_clock::now();
-	auto difftree = fsdiff::compare(m_paths[0], m_paths[1], [this, last_time](std::string aFileName) mutable {
-		auto curr_time = std::chrono::steady_clock::now();
-		auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>( curr_time - last_time );
-		auto delta_time_count = delta_time.count();
+	QElapsedTimer timer;
+	timer.start();
 
-		if( delta_time_count < 2000 ) {
-			return;
+	auto difftree = fsdiff::compare(m_paths[0], m_paths[1], [this, &timer](std::string aFileName) mutable {
+		if( timer.elapsed() > 200 ) {
+			emit stepReady(aFileName);
+			timer.restart();
 		}
-
-		last_time = std::chrono::steady_clock::now();
-
-		emit stepReady(aFileName);
 	}, m_filter);
 
 	emit resultReady(difftree);

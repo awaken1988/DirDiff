@@ -22,29 +22,9 @@ enum class log_level_t {
 	ERROR,
 };
 
-//TODO: remove static; implement in .cpp
-static std::string log_level_t_str(const log_level_t& aLevel)
-{
-	switch(aLevel) {
-	case log_level_t::INFO: 	return "INFO";
-	case log_level_t::WARNING: 	return "WARNING";
-	case log_level_t::ERROR:	return "ERROR";
-	}
+std::string log_level_t_str(const log_level_t& aLevel);
 
-	return "UNKOWN_LOG_LEVEL";
-}
-
-//TODO: remove static; implement in .cpp
-static uint32_t log_level_t_color(const log_level_t& aLevel)
-{
-	switch(aLevel) {
-	case log_level_t::INFO: 	return 0xFFEDEDED;
-	case log_level_t::WARNING: 	return 0xFFffea4f;
-	case log_level_t::ERROR:	return 0xFFf9614d;
-	};
-
-	return 0xFFFFFFFF;
-}
+uint32_t log_level_t_color(const log_level_t& aLevel);
 
 struct log_item_t {
 	std::chrono::time_point<std::chrono::system_clock> time;

@@ -81,7 +81,7 @@ DuplicateModel::duplicate_t DuplicateModel::create_onefile(	fsdiff::diff_t* aDif
 }
 
 DuplicateModel::DuplicateModel(fsdiff::diff_t::idx_t aSide, std::vector<std::vector<fsdiff::diff_t*>> aData)
-    : QAbstractItemModel(nullptr), m_side(aSide), m_duplicate_items(aData)
+    : QAbstractItemModel(nullptr), m_duplicate_items(aData), m_side(aSide)
 {
 
 }
@@ -196,13 +196,13 @@ QModelIndex DuplicateModel::index(int row, int column, const QModelIndex &parent
     }
     if( -1 != idx0 && -1 == idx1 ) {
 
-    	if( row >= m_duplicate_items[idx0].size() )
+    	if( row >= (int)m_duplicate_items[idx0].size() )
     		return QModelIndex();
 
     	return createIndex(row, column, (void*)find_create_indice(std::tuple<int,int>(idx0, row)));
     }
 
-    if( row >= m_duplicate_items.size() )
+    if( row >= (int)m_duplicate_items.size() )
         		return QModelIndex();
 
     return createIndex(row, column, (void*)find_create_indice(std::tuple<int,int>(row, -1)));

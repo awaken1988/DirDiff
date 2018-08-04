@@ -75,7 +75,7 @@ namespace fsdiff
 		return false;
 	}
 
-	void diff_t::createFileHashes(std::function<void(int,int,int)> aStep)
+	void diff_t::createFileHashes(std::function<void(int)> aStep)
 	{
 		file_hashes = shared_ptr<file_hash_t>(new file_hash_t);
 
@@ -116,7 +116,7 @@ namespace fsdiff
 					file_hashes->path_diff[aTree.fullpath[iSide]] = &aTree;
 
 					filesize_hashed += file_size(aTree.fullpath[iSide]);
-					aStep(0, filesize_sum, filesize_hashed);
+					aStep((filesize_hashed*1000.0)/filesize_sum);
 				}
 			}
 		});
@@ -268,11 +268,6 @@ namespace fsdiff
 
 	static void impl_compare(shared_ptr<diff_t>& aLeft, shared_ptr<diff_t>& aRight, std::function<void(string)> aFunction)
 	{
-		aFunction( std::string("compare ")
-					+ aLeft->getLastName(diff_t::LEFT).string().c_str()
-					+ std::string(" --- ")
-					+ aRight->getLastName(diff_t::LEFT).string().c_str() );
-
 		for(auto& iChild: aLeft->childs) {
 			auto right_iter =  find_if(aRight->childs.begin(), aRight->childs.end(), [&iChild](shared_ptr<diff_t>& aDiff) {
 				return aDiff->getLastName() == iChild->getLastName();
@@ -280,6 +275,9 @@ namespace fsdiff
 
 			const bool isInRight = right_iter != aRight->childs.end();
 			const bool isDirLeft = is_directory( iChild->fullpath[diff_t::LEFT] );
+
+			aFunction( std::string("compare left side: ")
+								+ iChild->fullpath[diff_t::LEFT].string().c_str() );
 
 			if( !isInRight ) {
 				iChild->cause = cause_t::DELETED;
@@ -321,6 +319,9 @@ namespace fsdiff
 				return aDiff->getLastName() == iChild->getLastName();
 			});
 
+			aFunction( std::string("compare right side: ")
+											+ iChild->fullpath[diff_t::LEFT].string().c_str() );
+
 			if( found == aLeft->childs.end() ) {
 				impl_set_cause_rekurively(iChild, cause_t::ADDED);
 				iChild->parent = aLeft.get();
@@ -338,6 +339,8 @@ namespace fsdiff
 	{
 		shared_ptr<diff_t> left = impl_list_dir_rekursive(aAbsoluteLeft, aAbsoluteLeft, nullptr, aFunction, aFilter);
 		shared_ptr<diff_t> right = impl_list_dir_rekursive(aAbsoluteRight, aAbsoluteRight, nullptr, aFunction, aFilter);
+
+		cout<<"*** compare ***"<<std::endl;
 
 		impl_compare(left, right, aFunction);
 

@@ -30,6 +30,7 @@ Filter::Filter(QWidget* parent)
 		m_search_input = new QLineEdit();
 		m_btn_include = new QPushButton("Include");
 		m_btn_exclude = new QPushButton("Exclude");
+		m_btn_clear = new QPushButton("Clear");
 
 		//TODO: merge these two functions
 		connect(m_btn_include, &QPushButton::clicked, [this](bool aChecked) -> void {
@@ -41,11 +42,19 @@ Filter::Filter(QWidget* parent)
 			addExpression(m_search_input->text(), true);
 		});
 
+		connect(m_btn_clear, &QPushButton::clicked, [this](bool aChecked) -> void {
+				auto row_count = m_model->rowCount(QModelIndex());
+				if( row_count > 0) {
+					m_model->deleteData(0, row_count-1);
+				}
+			});
+
 		topLayout->addStretch(1);
 		topLayout->addWidget(lbl);
 		topLayout->addWidget(m_search_input);
 		topLayout->addWidget(m_btn_include);
 		topLayout->addWidget(m_btn_exclude);
+		topLayout->addWidget(m_btn_clear);
 		topLayout->addStretch(1);
 	}
 

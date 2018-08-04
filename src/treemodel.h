@@ -31,7 +31,7 @@ public:
     void iterate_over_all(std::function<void(QModelIndex)> aFunc);
 
 
-	void startFileHash( std::function<void()> aOnReady, std::function<void(int,int,int)> aStep  );
+	void startFileHash( std::function<void()> aOnReady, std::function<void(int)> aStep  );
 
 	void setSizeUnit(QString aUnit);
 
@@ -63,7 +63,7 @@ public slots:
 	void hashAllFiles();
 signals:
 	void resultReady();
-	void stepReady(int,int,int);
+	void stepReady(int);
 
 private:
 	shared_ptr<fsdiff::diff_t>& m_tree;

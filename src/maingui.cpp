@@ -12,6 +12,7 @@
 #include "logger.h"
 #include <chrono>
 #include <ctime>
+#include <QElapsedTimer>
 #include <QMimeDatabase>
 #include <QSpacerItem>
 #include <QVBoxLayout>
@@ -174,17 +175,14 @@ void MainGui::clicked_diffitem(const QModelIndex &index)
 
 QPushButton* MainGui::createFileHashBtn()
 {
+	m_statusbar_hash = new QLabel("No Hash values calculated");
+	this->statusBar()->addPermanentWidget(m_statusbar_hash);
 	auto ret = new QPushButton("Compare Files");
 	QObject::connect(ret, &QPushButton::clicked, [this, ret]() {
 
 		ret->deleteLater();
 
-		auto progress = new QProgressBar();
-		m_progress_list->addWidget(progress);
-
-		auto ready = [progress, this]()->void {
-			progress->hide();
-
+		auto ready = [this]()->void {
 			{
 				auto duplicateWidget = new QWidget();
 				auto duplicateLayout = new QGridLayout();
@@ -246,33 +244,15 @@ QPushButton* MainGui::createFileHashBtn()
 					duplicateTree->addAction(diffview_action);
 
 				}
-
+				m_statusbar_hash->setText(QString("Files hashed"));
 
 			}
 
 			return;
 		};
 
-		auto last_time = std::chrono::steady_clock::now();
-		auto step = [progress,last_time,this](int aMin, int aMax, int aCurr) mutable -> void {
-
-			auto curr_time = std::chrono::steady_clock::now();
-			auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(last_time - curr_time);
-
-			if( delta_time.count() < 1000 ) {
-				return;
-			}
-
-			last_time = std::chrono::steady_clock::now();
-
-
-			progress->setMinimum(aMin);
-			progress->setMaximum(aMax);
-			progress->setValue(aCurr);
-
-			progress->setTextVisible(true);
-			progress->setFormat("Hash files");
-			return;
+		auto step = [this](int aPromilePart) mutable -> void {
+			m_statusbar_hash->setText(QString("Hash %1%").arg(aPromilePart/10));
 		};
 		m_model->startFileHash( ready, step );
 	});
