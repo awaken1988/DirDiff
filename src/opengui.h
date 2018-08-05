@@ -33,6 +33,7 @@ public:
 	shared_ptr<fsdiff::diff_t> m_diff;
 protected:
 	QLineEdit* m_paths[2];
+	QPushButton* m_open_folder[2];
 	QProgressBar* m_load_progress;
 	QLabel* m_status;
 	Filter* m_filter;

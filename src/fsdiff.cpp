@@ -81,6 +81,8 @@ namespace fsdiff
 
 		size_t filesize_sum = 0;
 
+		aStep(0);
+
 		foreach_diff_item(*this, [this, &filesize_sum](diff_t& aTree) {
 			for(int iSide=0; iSide<2; iSide++) {
 				if( is_regular_file(aTree.fullpath[iSide]) ) {

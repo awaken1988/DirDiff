@@ -65,19 +65,8 @@ public:
 	void appendData(const fsdiff::filter_item_t& aData);
 	void deleteData(int aStartRow, int aEndRow);
 
-	//TODO: move implementation to cpp file
-	decltype(m_expressions)::const_iterator begin()
-	{
-		return m_expressions.cbegin();
-	}
-
-	decltype(m_expressions)::const_iterator end()
-	{
-		return m_expressions.cend();
-	}
-
-
-
+	decltype(m_expressions)::const_iterator begin();
+	decltype(m_expressions)::const_iterator end();
 };
 
 #endif /* filter_h */

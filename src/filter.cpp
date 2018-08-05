@@ -32,7 +32,6 @@ Filter::Filter(QWidget* parent)
 		m_btn_exclude = new QPushButton("Exclude");
 		m_btn_clear = new QPushButton("Clear");
 
-		//TODO: merge these two functions
 		connect(m_btn_include, &QPushButton::clicked, [this](bool aChecked) -> void {
 			addExpression(m_search_input->text(), false);
 
@@ -217,3 +216,14 @@ Qt::ItemFlags FilterModel::flags(const QModelIndex & index) const
 {
 	return Qt::ItemIsSelectable;
 }
+
+decltype(FilterModel::m_expressions)::const_iterator FilterModel::begin()
+{
+	return m_expressions.cbegin();
+}
+
+decltype(FilterModel::m_expressions)::const_iterator FilterModel::end()
+{
+	return m_expressions.cend();
+}
+

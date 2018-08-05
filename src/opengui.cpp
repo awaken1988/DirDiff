@@ -45,7 +45,7 @@ OpenGui::OpenGui(QWidget *parent)
 
 		auto lblChoose 	= new QLabel(text, this);
 		m_paths[iSide]	= new QLineEdit(this);
-		auto bntDialog	= new QPushButton(this->style()->standardIcon(QStyle::SP_DialogOpenButton), "Open", this);
+		m_open_folder[iSide]	= new QPushButton(this->style()->standardIcon(QStyle::SP_DialogOpenButton), "Open", this);
 
 		if( 0 == iSide ) {
 			m_paths[iSide]->setText("");
@@ -57,7 +57,7 @@ OpenGui::OpenGui(QWidget *parent)
 		decltype(m_paths[iSide]) curr_paths = m_paths[iSide];
 
 		//show directory dialog
-		QObject::connect(bntDialog, &QPushButton::clicked, [this,curr_paths](int a) {
+		QObject::connect(m_open_folder[iSide], &QPushButton::clicked, [this,curr_paths](int a) {
 			QFileDialog dialog(this);
 			dialog.setFileMode(QFileDialog::DirectoryOnly);
 			if( dialog.exec() ) {
@@ -67,7 +67,7 @@ OpenGui::OpenGui(QWidget *parent)
 
 		m_main_layout->addWidget(lblChoose, iSide, 0);
 		m_main_layout->addWidget(m_paths[iSide], iSide, 1);
-		m_main_layout->addWidget(bntDialog, iSide, 2);
+		m_main_layout->addWidget(m_open_folder[iSide], iSide, 2);
 	}
 
 	auto btnLayout = new QHBoxLayout;
@@ -90,9 +90,13 @@ OpenGui::OpenGui(QWidget *parent)
 
 		//hide and lock
 		for(auto iEdit: this->m_paths) {
-			iEdit->setReadOnly(true);
+			iEdit->setEnabled(false);
 		}
-		btnOk->setDisabled(true);
+		for(auto iOpenFolder: this->m_open_folder) {
+			iOpenFolder->setEnabled(false);
+		}
+		btnOk->setEnabled(false);
+		m_filter->setEnabled(false);
 
 		//start thread
 		{

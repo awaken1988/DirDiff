@@ -20,7 +20,7 @@ SortFilterProxy::SortFilterProxy(QObject* aParent)
 }
 
 SortFilterProxy::~SortFilterProxy() {
-	// TODO Auto-generated destructor stub
+
 }
 
 bool SortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
