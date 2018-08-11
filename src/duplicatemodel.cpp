@@ -34,6 +34,12 @@ DuplicateModel::duplicate_t DuplicateModel::create_summary(	fsdiff::diff_t* aDif
 
 		auto findHash = aTree.file_hashes->hash_path.find(hash);
 
+		//TODO: without this the windows version will crash in the end of file hashing
+		if (aTree.file_hashes->hash_path.end() == findHash) {
+			return;
+		}
+		
+
 		std::vector<fsdiff::diff_t*> result;
 
 		cout<<"duplicate hash="<<hash.size()<<endl;
@@ -227,7 +233,7 @@ QModelIndex DuplicateModel::parent(const QModelIndex &index) const
     	return QModelIndex();
 
     if( -1 == idx1 )
-    	return createIndex(idx0, 0, (void*)find_create_indice(std::tuple<int,int>(-1, -1)));
+		return QModelIndex(); 
 
     return createIndex(idx1, 0, (void*)find_create_indice(std::tuple<int,int>(idx0, -1)));
 }
