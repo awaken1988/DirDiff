@@ -55,6 +55,9 @@
     <ClCompile Include="..\src\logger.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\findapp.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\detailgui.h">
@@ -87,6 +90,9 @@
       <Filter>src</Filter>
     </QtMoc>
     <QtMoc Include="..\src\filter.h">
+      <Filter>src</Filter>
+    </QtMoc>
+    <QtMoc Include="..\src\findapp.h">
       <Filter>src</Filter>
     </QtMoc>
   </ItemGroup>

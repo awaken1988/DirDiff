@@ -20,6 +20,7 @@
 #include <QDesktopWidget>
 #include <QFileDialog>
 #include "fsdiff.h"
+#include "findapp.h"
 
 OpenGui::OpenGui(QWidget *parent)
 	: QDialog(parent)
@@ -136,6 +137,10 @@ OpenGui::OpenGui(QWidget *parent)
 	setLayout(m_main_layout);
 
 	init_filter();
+
+	//only for testing
+	FindApp* app = new FindApp;
+	m_main_layout->addWidget(app, 10, 0);
 }
 
 void OpenGui::init_filter()
