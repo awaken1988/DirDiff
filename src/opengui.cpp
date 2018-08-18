@@ -140,7 +140,7 @@ OpenGui::OpenGui(QWidget *parent)
 
 	//only for testing
 	FindApp* app = new FindApp;
-	m_main_layout->addWidget(app, 10, 0);
+	m_main_layout->addWidget(app, 10, 0, 1, 3);
 }
 
 void OpenGui::init_filter()

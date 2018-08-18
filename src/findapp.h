@@ -13,30 +13,59 @@
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QFrame>
+#include <QDir>
+#include <QRegexp>
+#include <QMap>
+#include <QDebug>
 
 class FindApp : public QWidget
 {
 	Q_OBJECT
 public:
+	struct app_t
+	{
+		QString name;
+		QString path;
+		QString cmd_line;
+		bool is_diff;
+	};
+
+	struct find_app_t : public app_t
+	{
+		QRegExp search_name;
+		app_t item;
+	};
+
+public:
 	FindApp(QWidget *parent=nullptr);
 	~FindApp();
 
 	void addItem();
+	void addItem(app_t aApp);
+
+private:
+	void autoscan();
 
 private:
 	QGridLayout* m_main_layout;
 	QListWidget* m_app_list;
 
 	QPushButton* m_add_app;
+	QPushButton* m_autoscan_app;
+
+	QList<find_app_t> m_search_items;
+	QMap<QString, app_t> m_avail_items;
 };
 
 class AppItem : public QWidget
 {
+	friend FindApp;
+
 	Q_OBJECT
 public:
 	AppItem(QWidget *parent = nullptr);
 
-private:
+protected:
 	QVBoxLayout * m_main_layout;
 	QWidget* m_app_list;
 	QScrollArea* m_app_list_scroll;
