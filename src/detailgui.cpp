@@ -27,11 +27,14 @@
 #include <QTreeView>
 #include <QLabel>
 #include <QTextStream>
+#include <QGroupBox>
+#include <QProcess>
 #include "detailgui.h"
 #include "duplicatemodel.h"
 #include "dtl/dtl/dtl.hpp"
 #include "dtl/dtl/variables.hpp"
 #include "findapp.h"
+#include "logger.h"
 
 
 
@@ -60,11 +63,11 @@ namespace detailgui
 
 	void impl_show_path(fsdiff::diff_t* aDiff,
 						QGridLayout* aGrid,
-						fsdiff::diff_t::idx_t aIdx)
+						fsdiff::diff_t::idx_t aIdx,
+						int aRow,
+						int aCol)
 	{
 		using namespace boost::filesystem;
-		int row = aGrid->rowCount();
-		int col_offset = aIdx*3;
 
 		//header
 		{
@@ -133,18 +136,21 @@ namespace detailgui
 				header_layout->addWidget(btnExplorer);
 			}
 
-			aGrid->addLayout(header_layout, row++, 1+col_offset, 1 , 1);
+			aGrid->addLayout(header_layout, aRow, aCol, 1 , 1);
+			aRow++;
 		}
 
 
+
+		QGridLayout* text_info_table = new QGridLayout;
 
 		//last name
 		{
 			QString path = aDiff->getLastName(aIdx).string().c_str();
 			QLabel* fullPathText 	= new QLabel("Name:");
 			QLabel* fullPath 		= new QLabel(path);
-			aGrid->addWidget(fullPathText, row++, 0+col_offset);
-			aGrid->addWidget(fullPath, row-1, 1+col_offset);
+			text_info_table->addWidget(fullPathText, 0, 0);
+			text_info_table->addWidget(fullPath, 0, 1, 1, 2);
 		}
 
 		//full path
@@ -153,8 +159,8 @@ namespace detailgui
 			QLabel* fullPathText 	= new QLabel("Full Path:");
 			QLabel* fullPath 		= new QLabel(path);
 			fullPath->setWordWrap(true);
-			aGrid->addWidget(fullPathText, row++, 0+col_offset);
-			aGrid->addWidget(fullPath, row-1, 1+col_offset);
+			text_info_table->addWidget(fullPathText, 1, 0);
+			text_info_table->addWidget(fullPath, 1, 1, 1, 2);
 		}
 
 		//base dir
@@ -162,8 +168,8 @@ namespace detailgui
 			QString path = aDiff->baseDir[aIdx].string().c_str();
 			QLabel* fullPathText 	= new QLabel("Base Path:");
 			QLabel* fullPath 		= new QLabel(path);
-			aGrid->addWidget(fullPathText, row++, 0+col_offset);
-			aGrid->addWidget(fullPath, row-1, 1+col_offset);
+			text_info_table->addWidget(fullPathText, 2, 0);
+			text_info_table->addWidget(fullPath, 2, 1, 1, 2);
 		}
 
 		//mime
@@ -171,8 +177,8 @@ namespace detailgui
 		{
 			QLabel* fullPathText 	= new QLabel("Type:");
 			QLabel* fullPath 		= new QLabel(impl_get_mime(aDiff->fullpath[aIdx]));
-			aGrid->addWidget(fullPathText, row++, 0+col_offset);
-			aGrid->addWidget(fullPath, row-1, 1+col_offset);
+			text_info_table->addWidget(fullPathText, 3, 0);
+			text_info_table->addWidget(fullPath, 3, 1, 1, 2);
 		}
 
 		//filesize
@@ -195,8 +201,8 @@ namespace detailgui
 
 
 
-			aGrid->addWidget(fullPathText, row++, 0+col_offset);
-			aGrid->addWidget(fullPath, row-1, 1+col_offset);
+			text_info_table->addWidget(fullPathText, 4, 0);
+			text_info_table->addWidget(fullPath, 4, 1, 1, 2);
 		}
 
 		//hash
@@ -220,11 +226,11 @@ namespace detailgui
 
 
 				fullPath->setWordWrap(true);
-				aGrid->addWidget(fullPathText, row++, 0+col_offset);
-				aGrid->addWidget(fullPath, row-1, 1+col_offset);
+				text_info_table->addWidget(fullPathText, 5, 0);
+				text_info_table->addWidget(fullPath, 5, 1, 1, 2);
 			}
 
-
+			aGrid->addLayout(text_info_table, aRow++, aCol);
 		}
 	}
 
@@ -261,10 +267,11 @@ namespace detailgui
 		int row = 0;
 
 		//show diff tools
+		if( cause_t::CONTENT == aDiff->cause || cause_t::SAME == aDiff->cause)
 		{
 			auto diff_apps = FindApp::get_app_from_settings(true);
 
-			auto diff_app_widget = new QWidget;
+			auto diff_app_widget = new QGroupBox;
 			auto diff_app_lyt = new QHBoxLayout;
 			diff_app_widget->setLayout(diff_app_lyt);
 
@@ -273,29 +280,41 @@ namespace detailgui
 
 				auto app_btn = new QPushButton(curr_app.name);
 
+				QObject::connect(app_btn, &QPushButton::clicked, [curr_app, aDiff]() {
+					QString cmd_line = curr_app.cmd_line;
+					cmd_line.replace(app_t::WILDCARD_EXEC, QString("\"%1\"").arg(curr_app.path));
+					cmd_line.replace(app_t::WILDCARD_LEFT, QString("\"%1\"").arg(aDiff->fullpath[0].string().c_str()));
+					cmd_line.replace(app_t::WILDCARD_RIGHT, QString("\"%1\"").arg(aDiff->fullpath[1].string().c_str()));
+
+					LoggerInfo((QString("Executing ") + cmd_line).toStdString() );
+
+					QProcess process;
+					//process.setProgram("C:\\Program Files (x86)\\WinMerge\\WinMergeU.exe \"C:\\Program Files (x86)\\WinMerge\\Files.txt\" \"C:\\Program Files (x86)\\WinMerge\\Contributors.txt\"");
+					process.setProgram(cmd_line);
+					process.startDetached();
+				});
+
+				diff_app_widget->setTitle("Compare Tools");
 				diff_app_lyt->addWidget(app_btn);
 			}
 
-			gridLayout->addWidget(diff_app_widget, row, 0, 1, 4);
+			gridLayout->addWidget(diff_app_widget, row, 0, 1, 2, Qt::AlignHCenter);
 		}
 
-		row++;
 		for(int iSide=0; iSide<SIDES; iSide++) {
 			if( (cause_t::ADDED == aDiff->cause && iSide != diff_t::RIGHT)
 				|| (cause_t::DELETED == aDiff->cause && iSide != diff_t::LEFT) )
 			{
 				QLabel* lbl = new QLabel( fsdiff::cause_t_str(aDiff->cause).c_str());
 				QLabel* lblEmpty = new QLabel( fsdiff::cause_t_str(aDiff->cause).c_str());
-				gridLayout->addWidget(lbl, row, 0+3*iSide);
-				gridLayout->addWidget(lbl, row, 1+3*iSide);
+				gridLayout->addWidget(lbl, row, iSide);
+				gridLayout->addWidget(lbl, row, iSide);
 			}
 			else
 			{
-				impl_show_path(aDiff, gridLayout, static_cast<diff_t::idx_t>(iSide));
+				impl_show_path(aDiff, gridLayout, static_cast<diff_t::idx_t>(iSide), 1, iSide);
 			}
 		}
-
-		impl_diffgrid_settings(gridLayout);
 
 		return mainWidget;
 	}

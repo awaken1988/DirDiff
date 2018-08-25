@@ -5,6 +5,11 @@ static const QString TYPE_FILE = "fileapp";
 static const QString ITEM_PATH = "path";
 static const QString ITEM_CMDLINE = "cmdline";
 
+const QString app_t::WILDCARD_EXEC = "${exec}";
+const QString app_t::WILDCARD_LEFT = "${left}";
+const QString app_t::WILDCARD_RIGHT = "${right}";
+const QString app_t::WILDCARD_SINGLEFILE = "${file}";
+
 QMap<QString,app_t> FindApp::get_app_from_settings(bool aIsDiffApp)
 {
 	QMap<QString,app_t> ret;
@@ -291,12 +296,20 @@ AppItem::AppItem(QWidget *parent)
 		//main_ctrl_grid->addWidget(cmdline_label, 2, 2);
 
 		{
+			m_delete = new QPushButton("delete");
+
+			connect(m_delete, &QPushButton::clicked, [this](bool aClicked) {
+				this->deleteLater();
+				//TODO: remove from list
+			});
+
 			QWidget *separator = new QWidget;
 			separator->setFixedHeight(2);
 			separator->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 			separator->setStyleSheet(QString("background-color: #c0c0c0;"));
 
-			main_ctrl_grid->addWidget(separator, 3, 0, 1, 3);
+			main_ctrl_grid->addWidget(separator, 3, 0, 1, 2);
+			main_ctrl_grid->addWidget(m_delete, 3, 3, 1, 1);
 		}
 
 		m_add_app_cmdline->setText("${exec} \"${left}\" \"${right}\"");

@@ -28,6 +28,11 @@ struct app_t
 	bool is_diff;
 
 	static void register_qt_types();
+
+	static const QString WILDCARD_EXEC;
+	static const QString WILDCARD_LEFT;
+	static const QString WILDCARD_RIGHT;
+	static const QString WILDCARD_SINGLEFILE;
 };
 
 
@@ -104,5 +109,7 @@ protected:
 	QPushButton* m_add_app_btn;
 	QRadioButton* m_add_app_radio_diff;
 	QRadioButton* m_add_app_radio_file;
+
+	QPushButton* m_delete;
 };
 
