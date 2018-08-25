@@ -1,12 +1,42 @@
 #include "findapp.h"
 
-static QList<FindApp::find_app_t> impl_apps_to_find()
+static const QString TYPE_DIFF = "diffapp";
+static const QString TYPE_FILE = "fileapp";
+static const QString ITEM_PATH = "path";
+static const QString ITEM_CMDLINE = "cmdline";
+
+QMap<QString,app_t> FindApp::get_app_from_settings(bool aIsDiffApp)
 {
-	QList<FindApp::find_app_t> ret;
+	QMap<QString,app_t> ret;
+	QSettings settings;
+	QString prefix = aIsDiffApp ? TYPE_DIFF : TYPE_FILE;
+
+	for (auto iKey : settings.allKeys()) {
+		if (!iKey.startsWith(prefix)) { continue; }
+
+		QVariant read_var = settings.value(iKey);
+		if (!read_var.isValid()) { continue; }
+
+		app_t app = read_var.value<app_t>();
+		ret[app.name] = app;
+	}
+
+	return ret;
+}
+
+void app_t::register_qt_types()
+{
+	qRegisterMetaType<app_t>("app_t");
+	qRegisterMetaTypeStreamOperators<app_t>("app_t");
+}
+
+static QList<find_app_t> impl_apps_to_find()
+{
+	QList<find_app_t> ret;
 
 	//WinMerge for Windows
 	{
-		FindApp::find_app_t tmp;
+		find_app_t tmp;
 		tmp.search_name = QRegExp("WinMergeU\.exe$", Qt::CaseInsensitive);
 		tmp.name = "WinMerge Diff";
 		tmp.cmd_line = "${exec} ${left} ${right}";
@@ -32,7 +62,7 @@ FindApp::FindApp(QWidget *parent)
 	m_main_layout = new QGridLayout;
 	this->setLayout(m_main_layout);
 
-	m_main_layout->addWidget(m_app_list = new QListWidget, 0, 0, 1, 2);
+	m_main_layout->addWidget(m_app_list = new QListWidget, 0, 0, 1, 3);
 
 	//Add AppItem
 	{
@@ -57,8 +87,35 @@ FindApp::FindApp(QWidget *parent)
 		m_main_layout->addWidget(m_autoscan_app, 1, 1);
 	}
 
+	//Save
+	{
+		m_save = new QPushButton("Save");
+
+		connect(m_save, &QPushButton::clicked, [this](bool aChecked) {
+			this->save();
+		});
+
+		m_main_layout->addWidget(m_save, 1, 2);
+	}
+
 	//create empty entry
 	//addItem();
+	{
+		find_app_t test;
+		test.name = "test app name";
+		test.is_diff = true;
+		test.path = "C:/testapp/test.exe";
+		test.cmd_line = "bla arg0 arg1";
+		addItem(test);
+	}
+	{
+		find_app_t test;
+		test.name = "test app name";
+		test.is_diff = false;
+		test.path = "C:/testapp/test.exe";
+		test.cmd_line = "bla arg0 arg1";
+		addItem(test);
+	}
 
 	//fill find apps
 	m_search_items = impl_apps_to_find();
@@ -80,8 +137,12 @@ void FindApp::addItem(app_t aApp)
 	appItem->m_add_app_path->setText(aApp.path);
 	appItem->m_add_app_cmdline->setText(aApp.cmd_line);
 
-	if (aApp.is_diff) { appItem->m_add_app_radio_diff->setEnabled(true);}
-	else { appItem->m_add_app_radio_file->setEnabled(true); }
+	if (aApp.is_diff) { 
+		appItem->m_add_app_radio_diff->setChecked(true);
+	}
+	else { 
+		appItem->m_add_app_radio_file->setChecked(true);
+	}
 
 	listWidgetItem->setSizeHint(appItem->sizeHint());
 
@@ -133,7 +194,6 @@ void FindApp::autoscan()
 		}
 		else {
 			for (auto& iSearchApp : m_search_items) {
-				if (m_avail_items.contains(iSearchApp.name)) { continue; }
 				if (-1 == iSearchApp.search_name.indexIn(curr.fileName())) { continue; }
 
 				app_t found_app = iSearchApp;
@@ -148,6 +208,42 @@ void FindApp::autoscan()
 	}
 
 	qDebug() << "autoscan ready";
+}
+
+void FindApp::save()
+{
+	
+	QSettings settings;
+
+	for (int iRound = 0; iRound < 2; iRound++) {
+		for (int iItem = 0; iItem < m_app_list->count(); iItem++) {
+			auto curr_item = dynamic_cast<AppItem*>(m_app_list->itemWidget(   m_app_list->item(iItem)   ));
+			if (nullptr == curr_item) {
+				throw "unknown list item";
+			}
+
+			//TODO: check curr_name for slashes
+			app_t curr_app;
+			
+			curr_app.name = curr_item->m_add_app_name->text().toLower();
+			curr_app.path = curr_item->m_add_app_path->text();
+			curr_app.cmd_line = curr_item->m_add_app_cmdline->text();
+			curr_app.is_diff = curr_item->m_add_app_radio_diff->isChecked();
+
+			if (curr_app.name.isEmpty() || curr_app.path.isEmpty() || curr_app.cmd_line.isEmpty()) {
+				continue;
+			}
+
+			if (0 == iRound) {
+				//TODO: check for duplicates entries
+			}
+			else {
+				QString type = curr_app.is_diff ? TYPE_DIFF : TYPE_FILE;
+				settings.setValue(QString("%1/%2/").arg(type).arg(curr_app.name), qVariantFromValue<app_t>(curr_app));
+			}
+		}
+	}
+
 }
 
 

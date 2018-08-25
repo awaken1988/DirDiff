@@ -2,6 +2,7 @@
 #include "sortfilterproxy.h"
 #include "maingui.h"
 #include "opengui.h"
+#include "findapp.h"
 #include <vector>
 #include <boost/filesystem.hpp>
 #include <QApplication>
@@ -33,6 +34,10 @@ int main(int argc, char **argv)
 {
 	QApplication::setSetuidAllowed(true);
 	QApplication app(argc, argv);
+	QCoreApplication::setOrganizationName("awaken1988");
+	QCoreApplication::setApplicationName("DirDiff");
+	app_t::register_qt_types();
+
 
 	MainGui* mainGui = nullptr;
 

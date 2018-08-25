@@ -31,6 +31,7 @@
 #include "duplicatemodel.h"
 #include "dtl/dtl/dtl.hpp"
 #include "dtl/dtl/variables.hpp"
+#include "findapp.h"
 
 
 
@@ -62,7 +63,7 @@ namespace detailgui
 						fsdiff::diff_t::idx_t aIdx)
 	{
 		using namespace boost::filesystem;
-		int row = 0;
+		int row = aGrid->rowCount();
 		int col_offset = aIdx*3;
 
 		//header
@@ -257,15 +258,36 @@ namespace detailgui
 		QWidget* mainWidget = new QWidget;
 		QGridLayout * gridLayout = new QGridLayout;
 		mainWidget->setLayout(gridLayout);
+		int row = 0;
 
+		//show diff tools
+		{
+			auto diff_apps = FindApp::get_app_from_settings(true);
+
+			auto diff_app_widget = new QWidget;
+			auto diff_app_lyt = new QHBoxLayout;
+			diff_app_widget->setLayout(diff_app_lyt);
+
+			for (auto iKey : diff_apps.keys()) {
+				const app_t& curr_app = diff_apps[iKey];
+
+				auto app_btn = new QPushButton(curr_app.name);
+
+				diff_app_lyt->addWidget(app_btn);
+			}
+
+			gridLayout->addWidget(diff_app_widget, row, 0, 1, 4);
+		}
+
+		row++;
 		for(int iSide=0; iSide<SIDES; iSide++) {
 			if( (cause_t::ADDED == aDiff->cause && iSide != diff_t::RIGHT)
 				|| (cause_t::DELETED == aDiff->cause && iSide != diff_t::LEFT) )
 			{
 				QLabel* lbl = new QLabel( fsdiff::cause_t_str(aDiff->cause).c_str());
 				QLabel* lblEmpty = new QLabel( fsdiff::cause_t_str(aDiff->cause).c_str());
-				gridLayout->addWidget(lbl, 0, 0+3*iSide);
-				gridLayout->addWidget(lbl, 0, 1+3*iSide);
+				gridLayout->addWidget(lbl, row, 0+3*iSide);
+				gridLayout->addWidget(lbl, row, 1+3*iSide);
 			}
 			else
 			{
