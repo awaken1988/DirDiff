@@ -35,6 +35,7 @@ namespace fsdiff
 		FILE_TO_DIR,
 		DIR_TO_FILE,
 		CONTENT,
+		UNKNOWN,
 	};
 
 	string cause_t_str(cause_t aCause);

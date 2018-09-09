@@ -82,6 +82,7 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     	case cause_t::DIR_TO_FILE:	return QBrush( QColor(255, 245, 186) );
     	case cause_t::FILE_TO_DIR:	return QBrush( QColor(255, 245, 186) );
     	case cause_t::CONTENT:		return QBrush( QColor(255, 209, 209) );
+		case cause_t::UNKNOWN:		return QBrush( QColor(255, 255, 102));
     	default:					return QVariant();
     	}
     }

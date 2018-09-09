@@ -51,6 +51,7 @@ namespace fsdiff
 			cause_t::FILE_TO_DIR,
 			cause_t::DIR_TO_FILE,
 			cause_t::CONTENT,
+			cause_t::UNKNOWN,
 		};
 
 		return values;
@@ -132,11 +133,12 @@ namespace fsdiff
 		//update diffcause
 		foreach_diff_item(*this, [this,&filesize_hashed,filesize_sum, aStep](diff_t& aTree) {
 
-			if( cause_t::SAME != aTree.cause )
-				return;
+			auto hashLeft = file_hashes->path_hash.find(aTree.fullpath[0]);
+			auto hashRight = file_hashes->path_hash.find(aTree.fullpath[1]);
 
-			auto hashLeft = file_hashes->path_hash[aTree.fullpath[0]];
-			auto hashRight = file_hashes->path_hash[aTree.fullpath[1]];
+			if (hashLeft == file_hashes->path_hash.end() || hashRight == file_hashes->path_hash.end()) {
+				return;
+			}
 
 			if( hashLeft != hashRight )
 				aTree.cause = cause_t::CONTENT;
@@ -313,6 +315,23 @@ namespace fsdiff
 
 			if( isDirLeft ) {
 				impl_compare(iChild, *right_iter, aFunction);
+			}
+			else {
+				boost::system::error_code err0, err1;
+				auto filesize_left = boost::filesystem::file_size(iChild->fullpath[0], err0);
+				auto filesize_right = boost::filesystem::file_size(iChild->fullpath[1], err1);
+				bool is_no_err = boost::system::errc::success == err0.value() && boost::system::errc::success == err1.value();
+
+				if (is_no_err && filesize_left == filesize_right) {
+					iChild->cause = cause_t::SAME;
+				}
+				else if (is_no_err && filesize_left != filesize_right) {
+					iChild->cause = cause_t::CONTENT;
+				}
+				else {
+					iChild->cause = cause_t::UNKNOWN;
+				}
+			
 			}
 		}
 

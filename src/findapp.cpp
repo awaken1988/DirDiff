@@ -140,7 +140,6 @@ FindApp::FindApp(QWidget *parent)
 		m_save = new QPushButton("Save");
 
 		connect(m_save, &QPushButton::clicked, [this](bool aChecked) {
-			FindApp::delete_all_apps();
 			this->save();
 		});
 
@@ -263,7 +262,8 @@ void FindApp::autoscan()
 
 void FindApp::save()
 {
-	
+	FindApp::delete_all_apps();
+
 	QSettings settings;
 
 	for (int iRound = 0; iRound < 2; iRound++) {
