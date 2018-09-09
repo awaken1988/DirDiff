@@ -50,14 +50,14 @@ class FindApp : public QWidget
 public:
 	
 	static QMap <QString,FindApp::app_t> get_app_from_settings(bool aIsDiffApp);
-	
+	static void delete_all_apps();
 
 public:
 	FindApp(QWidget *parent=nullptr);
 	~FindApp();
 
-	void addItem();
-	void addItem(app_t aApp);
+	void addItem(QListWidget* aListWidget);
+	void addItem(QListWidget* aListWidget, app_t aApp);
 
 private:
 	void autoscan();
@@ -111,5 +111,7 @@ protected:
 	QRadioButton* m_add_app_radio_file;
 
 	QPushButton* m_delete;
+
+	QListWidgetItem* m_parent_item;
 };
 

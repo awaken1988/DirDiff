@@ -29,6 +29,17 @@ QMap<QString,app_t> FindApp::get_app_from_settings(bool aIsDiffApp)
 	return ret;
 }
 
+void FindApp::delete_all_apps()
+{
+	QSettings settings;
+
+	for (auto iSubSetting : { TYPE_FILE, TYPE_DIFF }) {
+		settings.beginGroup(iSubSetting);
+		settings.remove("");
+		settings.endGroup();
+	}
+}
+
 void app_t::register_qt_types()
 {
 	qRegisterMetaType<app_t>("app_t");
@@ -49,14 +60,31 @@ static QList<find_app_t> impl_apps_to_find()
 		ret.append(tmp);
 	}
 
-	//TODO:KDiff3
-	//TODO: Meld
+	//Kdiff3 for Windows
+	{
+		find_app_t tmp;
+		tmp.search_name = QRegExp("kdiff3\.exe$", Qt::CaseInsensitive);
+		tmp.name = "KDiff3 Diff";
+		tmp.cmd_line = "${exec} ${left} ${right}";
+		tmp.is_diff = true;
+		ret.append(tmp);
+	}
+
+	//Meld for Windows
+	{
+		find_app_t tmp;
+		tmp.search_name = QRegExp("Meld\.exe$", Qt::CaseInsensitive);
+		tmp.name = "Meld Diff";
+		tmp.cmd_line = "${exec} ${left} ${right}";
+		tmp.is_diff = true;
+		ret.append(tmp);
+	}
+
 	//TODO: Beyond Compare
 	//TODO: Araxis Merge
 
 	//TODO: HxD Hex Editor
 	//TODO: Hex-Editor MX
-	
 
 	return ret;
 }
@@ -75,7 +103,7 @@ FindApp::FindApp(QWidget *parent)
 		
 
 		connect(m_add_app, &QPushButton::clicked, [this](bool aChecked) {
-			addItem();
+			addItem(m_app_list);
 		});
 
 		m_main_layout->addWidget(m_add_app, 1, 0);
@@ -97,42 +125,36 @@ FindApp::FindApp(QWidget *parent)
 		m_save = new QPushButton("Save");
 
 		connect(m_save, &QPushButton::clicked, [this](bool aChecked) {
+			FindApp::delete_all_apps();
 			this->save();
 		});
 
 		m_main_layout->addWidget(m_save, 1, 2);
 	}
 
-	//create empty entry
-	//addItem();
-	{
-		find_app_t test;
-		test.name = "test app name";
-		test.is_diff = true;
-		test.path = "C:/testapp/test.exe";
-		test.cmd_line = "bla arg0 arg1";
-		addItem(test);
-	}
-	{
-		find_app_t test;
-		test.name = "test app name";
-		test.is_diff = false;
-		test.path = "C:/testapp/test.exe";
-		test.cmd_line = "bla arg0 arg1";
-		addItem(test);
-	}
-
 	//fill find apps
 	m_search_items = impl_apps_to_find();
+
+	//show settings
+	{
+		for (auto iDiff : { false, true }) {
+			auto diff_apps = FindApp::get_app_from_settings(iDiff);
+			for (auto iApp : diff_apps) {
+				addItem(m_app_list, iApp);
+			}
+		}
+
+		
+	}
 }
 
-void FindApp::addItem()
+void FindApp::addItem(QListWidget* aListWidget)
 {
-	addItem(app_t());
+	addItem(aListWidget, app_t());
 }
 
 
-void FindApp::addItem(app_t aApp)
+void FindApp::addItem(QListWidget* aListWidget, app_t aApp)
 {
 	auto* listWidgetItem = new QListWidgetItem(m_app_list);
 	m_app_list->addItem(listWidgetItem);
@@ -141,6 +163,7 @@ void FindApp::addItem(app_t aApp)
 	appItem->m_add_app_name->setText(aApp.name);
 	appItem->m_add_app_path->setText(aApp.path);
 	appItem->m_add_app_cmdline->setText(aApp.cmd_line);
+	appItem->m_parent_item = listWidgetItem;
 
 	if (aApp.is_diff) { 
 		appItem->m_add_app_radio_diff->setChecked(true);
@@ -206,7 +229,7 @@ void FindApp::autoscan()
 
 				qDebug() << "AutoscanApp: found" << found_app.name << "; path=" << found_app.path;
 
-				addItem(found_app);
+				addItem(m_app_list, found_app);
 			}
 			//item_to_traverse.removeLast();
 		}
@@ -299,8 +322,9 @@ AppItem::AppItem(QWidget *parent)
 			m_delete = new QPushButton("delete");
 
 			connect(m_delete, &QPushButton::clicked, [this](bool aClicked) {
-				this->deleteLater();
-				//TODO: remove from list
+				QListWidget* list = m_parent_item->listWidget();
+				int row = list->row(m_parent_item);
+				delete list->takeItem(row);
 			});
 
 			QWidget *separator = new QWidget;
