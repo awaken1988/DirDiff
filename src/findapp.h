@@ -14,7 +14,7 @@
 #include <QListWidgetItem>
 #include <QFrame>
 #include <QDir>
-#include <QRegexp>
+#include <QRegExp>
 #include <QMap>
 #include <QDebug>
 #include <QSettings>
@@ -49,7 +49,7 @@ class FindApp : public QWidget
 	Q_OBJECT
 public:
 	
-	static QMap <QString,FindApp::app_t> get_app_from_settings(bool aIsDiffApp);
+	static QMap <QString,app_t> get_app_from_settings(bool aIsDiffApp);
 	static void delete_all_apps();
 
 public:

@@ -71,8 +71,16 @@ OpenGui::OpenGui(QWidget *parent)
 		m_main_layout->addWidget(m_open_folder[iSide], iSide, 2);
 	}
 
+//set only testpaths in debug
+#ifdef __linux__
+	m_paths[0]->setText("/home/martin/Dropbox/Programming/DirDiff/left/");
+	m_paths[1]->setText("/home/martin/Dropbox/Programming/DirDiff/right/");
+#elif _WIN32
 	m_paths[0]->setText("C:\\Users\\martin\\Desktop\\DirDiff\\vs2017_project\\x64\\Debug");
 	m_paths[1]->setText("C:\\Users\\martin\\Desktop\\DirDiff\\vs2017_project\\x64\\Release");
+#else
+
+#endif
 
 	auto btnLayout = new QHBoxLayout;
 	btnLayout->addStretch(1);

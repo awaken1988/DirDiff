@@ -1,4 +1,4 @@
-QT += gui widgets
+QT += core gui widgets 
 
 SOURCES =   src/main.cpp \     
             src/fsdiff.cpp \    
