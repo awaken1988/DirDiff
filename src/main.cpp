@@ -1,8 +1,3 @@
-#include "treemodel.h"
-#include "sortfilterproxy.h"
-#include "maingui.h"
-#include "opengui.h"
-#include "findapp.h"
 #include <vector>
 #include <boost/filesystem.hpp>
 #include <QApplication>
@@ -12,7 +7,11 @@
 #include <QDesktopWidget>
 #include <QMainWindow>
 #include <QTimer>
-
+#include "treemodel.h"
+#include "sortfilterproxy.h"
+#include "maingui.h"
+#include "opengui.h"
+#include "findapp.h"
 
 
 auto getPathByArg(int argc, char **argv)

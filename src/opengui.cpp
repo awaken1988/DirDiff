@@ -5,7 +5,7 @@
  *      Author: martin
  */
 
-#include "opengui.h"
+
 
 #include <iostream>
 #include <chrono>
@@ -21,6 +21,8 @@
 #include <QFileDialog>
 #include "fsdiff.h"
 #include "findapp.h"
+
+#include "opengui.h"
 
 OpenGui::OpenGui(QWidget *parent)
 	: QDialog(parent)
