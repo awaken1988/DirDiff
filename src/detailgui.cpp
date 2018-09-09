@@ -291,7 +291,7 @@ namespace detailgui
 					QProcess process;
 					//process.setProgram("C:\\Program Files (x86)\\WinMerge\\WinMergeU.exe \"C:\\Program Files (x86)\\WinMerge\\Files.txt\" \"C:\\Program Files (x86)\\WinMerge\\Contributors.txt\"");
 					process.setProgram(cmd_line);
-					process.startDetached();
+					process.startDetached();		//FIXME: not working on linux
 				});
 
 				diff_app_widget->setTitle("Compare Tools");

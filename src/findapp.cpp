@@ -50,6 +50,17 @@ static QList<find_app_t> impl_apps_to_find()
 {
 	QList<find_app_t> ret;
 
+#ifdef __linux__
+	//Kdiff3 for Linux
+	{
+		find_app_t tmp;
+		tmp.search_name = QRegExp("kdiff3", Qt::CaseSensitive);
+		tmp.name = "KDiff3 Diff";
+		tmp.cmd_line = "${exec} ${left} ${right}";
+		tmp.is_diff = true;
+		ret.append(tmp);
+	}
+#elif _WIN32
 	//WinMerge for Windows
 	{
 		find_app_t tmp;
@@ -79,6 +90,10 @@ static QList<find_app_t> impl_apps_to_find()
 		tmp.is_diff = true;
 		ret.append(tmp);
 	}
+#else
+
+#endif
+
 
 	//TODO: Beyond Compare
 	//TODO: Araxis Merge
@@ -193,7 +208,15 @@ void FindApp::autoscan()
 	//TODO: get specific windows filder for programs
 	//TODO: on linux search all directories in the path variable
 	//auto item_to_traverse = QDir::drives();
+
+#ifdef __linux__
+	QList<QFileInfo> item_to_traverse = { QFileInfo( "/bin" ), QFileInfo( "/usr/bin" ) };
+#elif _WIN32
 	QList<QFileInfo> item_to_traverse = { QFileInfo( "C:\\Program Files (x86)\\" ) };
+#else
+
+#endif
+
 
 	while (!item_to_traverse.isEmpty()) {
 		auto curr = item_to_traverse.last();
