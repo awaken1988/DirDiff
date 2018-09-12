@@ -63,12 +63,12 @@ DuplicateModel::duplicate_t DuplicateModel::create_summary(	fsdiff::diff_t* aDif
 		hashes_used.insert(hash);
 	});
 
-	for(const auto& iArr: duplicate_items) {
-		LoggerInfo("----");
-		for(const auto& iElement: iArr) {
-			LoggerInfo(iElement->fullpath[aSide].string());
-		}
-	}
+	//for(const auto& iArr: duplicate_items) {
+	//	LoggerInfo("----");
+	//	for(const auto& iElement: iArr) {
+	//		LoggerInfo(iElement->fullpath[aSide].string());
+	//	}
+	//}
 
 	return duplicate_items;
 }
