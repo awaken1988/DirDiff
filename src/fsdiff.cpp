@@ -140,7 +140,7 @@ namespace fsdiff
 				return;
 			}
 
-			if( hashLeft != hashRight )
+			if( hashLeft->second != hashRight->second )
 				aTree.cause = cause_t::CONTENT;
 		});
 	}

@@ -4,6 +4,7 @@
 #include <QBrush>
 #include <QFileIconProvider>
 #include <QFileInfo>
+#include "logger.h"
 
 enum class dup_data_e {
 	ICON=0,
@@ -34,12 +35,10 @@ DuplicateModel::duplicate_t DuplicateModel::create_summary(	fsdiff::diff_t* aDif
 
 		auto findHash = aTree.file_hashes->hash_path.find(hash);
 
-		//TODO: without this the windows version will crash in the end of file hashing
 		if (aTree.file_hashes->hash_path.end() == findHash) {
 			return;
 		}
 		
-
 		std::vector<fsdiff::diff_t*> result;
 
 		cout<<"duplicate hash="<<hash.size()<<endl;
@@ -50,7 +49,10 @@ DuplicateModel::duplicate_t DuplicateModel::create_summary(	fsdiff::diff_t* aDif
 			if( iPath == diffPtr->fullpath[aSide?0:1] )
 				continue;
 
-			result.push_back(aTree.file_hashes->path_diff[iPath]);
+			if (!is_regular_file(diffPtr->fullpath[aSide]))
+				continue;
+
+			result.push_back(diffPtr);
 			cout<<"	duplicate file"<<iPath<<endl;
 		}
 
@@ -62,9 +64,9 @@ DuplicateModel::duplicate_t DuplicateModel::create_summary(	fsdiff::diff_t* aDif
 	});
 
 	for(const auto& iArr: duplicate_items) {
-		std::cout<<"bla"<<std::endl;
+		LoggerInfo("----");
 		for(const auto& iElement: iArr) {
-			std::cout<<iElement->fullpath[aSide].c_str()<<std::endl;
+			LoggerInfo(iElement->fullpath[aSide].string());
 		}
 	}
 
@@ -80,6 +82,15 @@ DuplicateModel::duplicate_t DuplicateModel::create_onefile(	fsdiff::diff_t* aDif
 
 	for(const auto& iPath: aDiff->file_hashes->hash_path[hash_value]) {
 		auto curr_item = aDiff->file_hashes->path_diff[iPath];
+		auto side_path = curr_item->fullpath[aSide];
+		auto side_hash = aDiff->file_hashes->path_hash.find(side_path);
+
+		if (side_hash == aDiff->file_hashes->path_hash.end())
+			continue;
+
+		if (side_hash->second != hash_value)
+			continue;
+
 		items.push_back( curr_item );
 	}
 
@@ -124,8 +135,11 @@ QVariant DuplicateModel::data(const QModelIndex &index, int role) const
 
     		fsdiff::diff_t* diff_item = m_duplicate_items[idx0][0];
 
-    		const auto filesize = boost::filesystem::file_size(diff_item->fullpath[m_side]);
+			if (!is_regular_file(diff_item->fullpath[m_side]))
+				return QVariant();
 
+    		const auto filesize = boost::filesystem::file_size(diff_item->fullpath[m_side]);
+			
     		return QString("Filesize=%1")
     				.arg(pretty_print_size(filesize, "auto").c_str());
     	}
