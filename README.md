@@ -13,8 +13,16 @@ There are also regex filter to include or exclude specific files.
 * Find duplicate files (after click "compare files")
 * Integrated Diff Gui (deactivated; see TODO)
 
+
+## Bugs
+- [ ] Duplicates are in some cases wrong
+- [ ] Select Duplicates from Duplicate don't update the diff detail view
+- [ ] All Filters not work as expected; it filters more than it should
+- [ ] Slow load times
+
 ## TODO
-* HexEditor-Widget to show binary files (from a external Project)
-* Progressbar when loading files have a strange behaviour (updating files on dialog only x seconds long; instead every x seconds)
-* Hash Progressbar seems to be broken
-* Integrated Diff Gui: Diff only text files otherwise applications hangs on large binaries or crash
+- [ ] Add more default filters
+- [ ] Include more external diff tools
+- [ ] Remove integrated Diff tools (for files)
+- [ ] Make a summary view which shows all files recusively in a list
+
