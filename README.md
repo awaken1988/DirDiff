@@ -22,7 +22,9 @@ There are also regex filter to include or exclude specific files.
 
 ## TODO
 - [ ] Add more default filters
+- [ ] Integrate the external diff tool menu more properly
 - [ ] Include more external diff tools
 - [ ] Remove integrated Diff tools (for files)
 - [ ] Make a summary view which shows all diff files/directories recusively in a list
+
 
