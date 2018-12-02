@@ -16,7 +16,7 @@ There are also regex filter to include or exclude specific files.
 
 ## Bugs
 - [ ] Duplicates are in some cases wrong
-- [ ] Select Duplicates from Duplicate don't update the diff detail view
+- [ ] Select Duplicates from Duplicate menu don't update the diff detail view
 - [ ] All Filters not work as expected; it filters more than it should
 - [ ] Slow load times
 
@@ -24,5 +24,5 @@ There are also regex filter to include or exclude specific files.
 - [ ] Add more default filters
 - [ ] Include more external diff tools
 - [ ] Remove integrated Diff tools (for files)
-- [ ] Make a summary view which shows all files recusively in a list
+- [ ] Make a summary view which shows all diff files/directories recusively in a list
 
