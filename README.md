@@ -17,7 +17,7 @@ There are also regex filter to include or exclude specific files.
 ## Bugs
 - [ ] Duplicates are in some cases wrong
 - [ ] Select Duplicates from Duplicate menu don't update the diff detail view
-- [ ] All Filters not work as expected; it filters more than it should
+- [ ] All Filters work on the whole path string. This is a bit problematic e.g \\.git would also matches /home/user/mygit.git/data; Maybe Filters should look at every path item
 - [ ] Slow load times
 
 ## TODO
