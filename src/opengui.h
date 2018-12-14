@@ -26,7 +26,7 @@ class OpenGui : public QDialog
 {
 	  Q_OBJECT
 public:
-	OpenGui(QWidget *parent = 0);
+	OpenGui(std::vector<boost::filesystem::path> aDefault, QWidget *parent = 0);
 	virtual ~OpenGui();
 
 	std::vector<boost::filesystem::path> m_paths_str;

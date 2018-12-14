@@ -5,7 +5,9 @@
 
 enum class column_e {
     ITEM_NAME=0,
-    ITEM_CAUSE,
+    ITEM_CAUSE_LEFT,
+    ITEM_CAUSE_MIDDLE,
+    ITEM_CAUSE_RIGHT,
     DIFF_SIZE,
     LEN,
 };
@@ -14,10 +16,12 @@ static QString column_e_str(column_e aColumn)
 {
 	switch(aColumn)
 	{
-	case column_e::ITEM_NAME:		return "Filename";
-	case column_e::ITEM_CAUSE:	return "Cause";
-	case column_e::DIFF_SIZE:		return "Size Difference";
-	case column_e::LEN:			return "Length";
+	case column_e::ITEM_NAME:		    return "Filename";
+	case column_e::ITEM_CAUSE_LEFT:	    return "Del";
+    case column_e::ITEM_CAUSE_MIDDLE:   return "Mod";
+    case column_e::ITEM_CAUSE_RIGHT:	return "Add";
+	case column_e::DIFF_SIZE:		    return "Size Difference";
+	case column_e::LEN:			        return "Length";
 	}
 
 	return "";
@@ -57,10 +61,24 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
         const bool is_added = fsdiff::cause_t::ADDED == item->cause;
         const diff_t::idx_t idx_side = is_added ? diff_t::RIGHT : diff_t::LEFT;
 
+        QString cause_left, cause_right, cause_middle;
+       
+        if( fsdiff::cause_t::DELETED == item->cause  ) {
+            cause_left = fsdiff::cause_t_str( item->cause ).c_str();
+        }
+        else if( fsdiff::cause_t::ADDED == item->cause ) {
+            cause_right = fsdiff::cause_t_str( item->cause ).c_str();
+        }
+        else {
+            cause_middle = fsdiff::cause_t_str( item->cause ).c_str();
+        }
+
         switch(static_cast<column_e>(index.column()))
         {
         case column_e::ITEM_NAME:	return QString( item->getLastName(idx_side).string().c_str() );
-        case column_e::ITEM_CAUSE:	return fsdiff::cause_t_str( item->cause ).c_str();
+        case column_e::ITEM_CAUSE_LEFT:	    return cause_left;
+        case column_e::ITEM_CAUSE_MIDDLE:	return cause_middle;
+        case column_e::ITEM_CAUSE_RIGHT:    return cause_right;
         case column_e::DIFF_SIZE:	{
         		auto curr_size = fsdiff::diff_size(*item);
         		if( 0 == curr_size )
@@ -77,11 +95,11 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
 
     	switch( item->cause )
     	{
-    	case cause_t::ADDED: 		return QBrush( QColor(194, 255, 168) );
-    	case cause_t::DELETED:		return QBrush( QColor(214, 255, 250) );
+    	case cause_t::ADDED: 		return QBrush( QColor(197, 255, 127) );
+    	case cause_t::DELETED:		return QBrush( QColor(255, 181, 160) );
     	case cause_t::DIR_TO_FILE:	return QBrush( QColor(255, 245, 186) );
     	case cause_t::FILE_TO_DIR:	return QBrush( QColor(255, 245, 186) );
-    	case cause_t::CONTENT:		return QBrush( QColor(255, 209, 209) );
+    	case cause_t::CONTENT:		return QBrush( QColor(191, 255, 242) );
 		case cause_t::UNKNOWN:		return QBrush( QColor(255, 255, 102));
     	default:					return QVariant();
     	}
@@ -90,9 +108,10 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
 
         switch(static_cast<column_e>(index.column()))
         {
-        case column_e::ITEM_NAME:	return Qt::AlignLeft;
-        case column_e::ITEM_CAUSE:	return Qt::AlignLeft;
-        case column_e::DIFF_SIZE:	return Qt::AlignRight;
+        case column_e::ITEM_NAME:	        return Qt::AlignLeft;
+        case column_e::ITEM_CAUSE_LEFT:	    return Qt::AlignLeft;
+        case column_e::ITEM_CAUSE_RIGHT:	return Qt::AlignLeft;
+        case column_e::DIFF_SIZE:	        return Qt::AlignRight;
         default: return QVariant();
         };
     }
@@ -176,11 +195,7 @@ int TreeModel::rowCount(const QModelIndex &parent) const
 
 void TreeModel::setupModelData()
 {
-    path  left("/home/martin/Dropbox/Programming/tools_and_snippets/cpp_snippets/");
-    path right("/home/martin/Dropbox/Programming/tools_and_snippets/cpp_snippets_copy/");
-
-    //rootItem = fsdiff::compare(left, right);
-    //rootItem = fsdiff::list_dir_rekursive(left);
+   
 }
 
 void TreeModel::iterate_over_all_inner(std::function<void(QModelIndex)> aFunc, QModelIndex aModelIndex)

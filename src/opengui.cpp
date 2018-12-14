@@ -24,7 +24,7 @@
 
 #include "opengui.h"
 
-OpenGui::OpenGui(QWidget *parent)
+OpenGui::OpenGui(std::vector<boost::filesystem::path> aDefault, QWidget *parent)
 	: QDialog(parent)
 {
 	//resize
@@ -73,8 +73,10 @@ OpenGui::OpenGui(QWidget *parent)
 		m_main_layout->addWidget(m_open_folder[iSide], iSide, 2);
 	}
 
-	m_paths[0]->setText("../testdata/left/");
-	m_paths[1]->setText("../testdata/right/");
+	if( aDefault.size() > 1 ) {
+		m_paths[0]->setText(aDefault[0].string().c_str());
+		m_paths[1]->setText(aDefault[1].string().c_str());
+	}
 
 	auto btnLayout = new QHBoxLayout;
 	btnLayout->addStretch(1);
@@ -156,8 +158,8 @@ void OpenGui::init_filter()
 
 	//some predefined filter
 	//later we could move this to a config file
-	m_filter->addExpression(".git", true);
-	m_filter->addExpression(".svn", true);
+	//m_filter->addExpression("\\.git", true);
+	//m_filter->addExpression("\\.svn", true);
 }
 
 void OpenGui::recListFilesReady(shared_ptr<fsdiff::diff_t> aDiff)

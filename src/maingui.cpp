@@ -29,6 +29,7 @@
 #include <QComboBox>
 #include <QFrame>
 #include <QGroupBox>
+#include <QSpinBox>
 
 MainGui::MainGui(  )
 {
@@ -318,10 +319,19 @@ QWidget* MainGui::createFilterBtns()
 	//expand all
 	{
 		auto ret = new QPushButton("Expand All");
-		QObject::connect(ret, &QPushButton::clicked, [this]() {
-			m_tree_view->expandAll();
+		auto depth = new QSpinBox();
+
+		QObject::connect(ret, &QPushButton::clicked, [this, depth]() {
+			if( depth->value() > 0 ) {
+				m_tree_view->expandToDepth(depth->value());
+			}
+			else {
+				m_tree_view->expandAll();
+			}
+			
 		});
 		filter_layout->addWidget(ret);
+		filter_layout->addWidget(depth);
 	};
 
 	return ret;
