@@ -59,13 +59,7 @@ namespace fsdiff
 
 	path diff_t::getLastName(idx_t aIdx)
 	{
-	   path ret;
-
-	   for(auto iElements: fullpath[aIdx]) {
-		   ret = iElements;
-	   }
-
-	   return ret;
+		return fullpath[aIdx].filename();
 	}
 
 	bool diff_t::isBase()
@@ -273,15 +267,18 @@ namespace fsdiff
 	static void impl_compare(shared_ptr<diff_t>& aLeft, shared_ptr<diff_t>& aRight, std::function<void(string)> aFunction)
 	{
 		for(auto& iChild: aLeft->childs) {
-			auto right_iter =  find_if(aRight->childs.begin(), aRight->childs.end(), [&iChild](shared_ptr<diff_t>& aDiff) {
-				return aDiff->getLastName() == iChild->getLastName();
+
+			path child_lastname = iChild->getLastName();
+
+			auto right_iter =  find_if(aRight->childs.begin(), aRight->childs.end(), [&iChild, &child_lastname](shared_ptr<diff_t>& aDiff) {
+				return aDiff->getLastName() == child_lastname;
 			});
 
 			const bool isInRight = right_iter != aRight->childs.end();
 			const bool isDirLeft = is_directory( iChild->fullpath[diff_t::LEFT] );
 
-			aFunction( std::string("compare left side: ")
-								+ iChild->fullpath[diff_t::LEFT].string().c_str() );
+			//aFunction( std::string("compare left side: ")
+			//					+ iChild->fullpath[diff_t::LEFT].string().c_str() );
 
 			if( !isInRight ) {
 				iChild->cause = cause_t::DELETED;
@@ -336,12 +333,15 @@ namespace fsdiff
 		}
 
 		for(auto& iChild: aRight->childs) {
-			auto found =  find_if(aLeft->childs.begin(), aLeft->childs.end(), [&iChild](shared_ptr<diff_t>& aDiff) {
-				return aDiff->getLastName() == iChild->getLastName();
+
+			path child_lastname = iChild->getLastName();
+
+			auto found =  find_if(aLeft->childs.begin(), aLeft->childs.end(), [&iChild, &child_lastname](shared_ptr<diff_t>& aDiff) {
+				return aDiff->getLastName() == child_lastname;
 			});
 
-			aFunction( std::string("compare right side: ")
-											+ iChild->fullpath[diff_t::LEFT].string().c_str() );
+			//aFunction( std::string("compare right side: ")
+			//								+ iChild->fullpath[diff_t::LEFT].string().c_str() );
 
 			if( found == aLeft->childs.end() ) {
 				impl_set_cause_rekurively(iChild, cause_t::ADDED);

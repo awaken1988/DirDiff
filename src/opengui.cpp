@@ -195,7 +195,7 @@ void FileLoadWalker::hashAllFiles()
 	timer.start();
 
 	auto difftree = fsdiff::compare(m_paths[0], m_paths[1], [this, &timer](std::string aFileName) mutable {
-		if( timer.elapsed() > 200 ) {
+		if( timer.elapsed() > 800 ) {
 			emit stepReady(aFileName);
 			timer.restart();
 		}
